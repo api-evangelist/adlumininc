@@ -1,0 +1,48 @@
+generated: '2026-09-07'
+method: searched
+source: >-
+  https://developer.n-able.com/adlumin/docs/getting-started, https://status.n-able.com/release-notes/,
+  https://uptime.n-able.com/, openapi/adlumininc-api-openapi-original.yml
+versioning:
+  scheme: uri-path
+  current: v1
+  spec_version: 1.0.0
+  docs: https://developer.n-able.com/adlumin/reference
+  note: The base URL carries the major version (https://api.adlumin.com/v1). No date or header versioning.
+deprecation:
+  policy_url: null
+  sunset_header: false
+  deprecation_header: false
+  note: >-
+    No deprecation or sunset policy is published for the Adlumin API, and no operation in the OpenAPI
+    carries deprecated: true. N-able publishes product end-of-life and end-of-support notices through
+    its release-notes and status channels rather than through an API deprecation contract, so an
+    integrator gets product-level notice but no per-operation Sunset/Deprecation signalling.
+  evidence:
+  - url: https://status.n-able.com/release-notes/
+    http_status: 200
+    kind: product release notes and change announcements (covers Adlumin)
+sla:
+  url: null
+  uptime_target: null
+  note: No public SLA or uptime commitment was found for the Adlumin API.
+status_page:
+  url: https://uptime.n-able.com/
+  note: >-
+    status.adlumin.com still resolves but serves only a meta-refresh to https://uptime.n-able.com,
+    the consolidated N-able status dashboard, after the acquisition. A narrative incident/announcement
+    feed scoped to Adlumin is also published at https://status.n-able.com/category/adlumin/.
+  evidence:
+  - {url: 'https://status.adlumin.com/', http_status: 200, note: 'meta-refresh redirect only'}
+  - {url: 'https://uptime.n-able.com/', http_status: 200}
+  - {url: 'https://status.n-able.com/category/adlumin/', http_status: 200}
+deprecated_operations: []
+lifecycle_stage: generally-available
+ownership:
+  operator: N-able, Inc.
+  acquired: '2024-11'
+  note: >-
+    Adlumin, Inc. was acquired by N-able in November 2024. adlumin.com and www.adlumin.com now 301 to
+    https://www.n-able.com/products/adlumin, the developer portal is a child project on
+    developer.n-able.com, and the status page consolidated onto uptime.n-able.com. api.adlumin.com and
+    portal.adlumin.com are still live under the original brand.

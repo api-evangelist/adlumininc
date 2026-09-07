@@ -1,0 +1,24 @@
+generated: '2026-09-07'
+method: searched
+source: >-
+  https://developer.n-able.com/adlumin/reference (all 11 operations),
+  https://developer.n-able.com/adlumin/docs/getting-started,
+  openapi/adlumininc-api-openapi-original.yml
+limit_count: 0
+limits: []
+response_headers: []
+status_on_exhaustion: null
+retry_after: false
+note: >-
+  Adlumin publishes no rate limits. No operation in the OpenAPI declares a 429 response, the reference
+  pages document no quota or throttle, and no RateLimit-*, X-RateLimit-* or Retry-After header is
+  named anywhere in the contract or the docs. The only volume control the contract expresses is
+  per_page, capped at 100 records per request, which bounds a single response but says nothing about
+  request rate. An agent integrating here has no published runtime backoff signal and must implement
+  defensive throttling blind. Recorded as an honest zero rather than omitted.
+observed:
+  probed: false
+  reason: >-
+    api.adlumin.com rejects every unauthenticated request with 403 MissingAuthenticationTokenException
+    before any rate-limit header could be emitted, so no live header observation was possible without
+    a tenant credential this pipeline does not hold and would not use.

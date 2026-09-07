@@ -1,0 +1,108 @@
+generated: '2026-09-07'
+method: derived
+source: mcp/adlumininc-mcp.yml + openapi/adlumininc-api-openapi-original.yml
+note: >-
+  Derived by reading the first-party MCP server source (adlumin-mcp-python/server.py, shipped inside
+  the provider's own download) against the OpenAPI it ships alongside. Every binding below is exact —
+  each tool's httpx call names the REST path verbatim — so confidence is high throughout. The Adlumin
+  OpenAPI declares no operationId on any operation, so REST operations are addressed here by
+  method + path, which is the only stable identifier the contract publishes.
+surfaces:
+  openapi:
+    file: openapi/adlumininc-api-openapi-original.yml
+    version: 3.0.3
+    server: https://api.adlumin.com/v1
+    gated: true
+    note: Live calls need a tenant Bearer JWT; api.adlumin.com answers unauthenticated requests with 403.
+  mcp:
+    manifest: mcp/adlumininc-mcp.yml
+    mode: local-stdio
+    tools_list_probed: false
+    note: >-
+      No published remote endpoint, so tools/list could not be probed. The tool set below is read from
+      the provider's own server.py rather than guessed, which is a stronger source than a name-matched
+      llms.txt list.
+  graphql: null
+crosswalk:
+- tool: get_detections
+  category: detections
+  rest: ['GET /detections']
+  binding: rest
+  confidence: high
+- tool: acknowledge_detections
+  category: detections
+  rest: ['POST /acknowledge_detections']
+  binding: rest
+  confidence: high
+  note: The only mutating operation on the whole surface.
+- tool: get_at_risk_groups
+  category: at-risk-assets
+  rest: ['GET /at_risk_groups']
+  binding: rest
+  confidence: high
+- tool: get_at_risk_shares
+  category: at-risk-assets
+  rest: ['GET /at_risk_shares']
+  binding: rest
+  confidence: high
+- tool: get_at_risk_systems
+  category: at-risk-assets
+  rest: ['GET /at_risk_systems']
+  binding: rest
+  confidence: high
+- tool: get_endpoint_data
+  category: endpoint
+  rest: ['GET /endpoint_data']
+  binding: rest
+  confidence: high
+- tool: get_complete_endpoint_data
+  category: endpoint
+  rest: ['GET /complete_endpoint_data']
+  binding: rest
+  confidence: high
+- tool: get_device_data
+  category: endpoint
+  rest: ['GET /device_data']
+  binding: rest
+  confidence: high
+- tool: get_network_data
+  category: network
+  rest: ['GET /network_data']
+  binding: rest
+  confidence: high
+- tool: get_firewall_events
+  category: firewall
+  rest: ['GET /firewall']
+  binding: rest
+  confidence: high
+- tool: get_firewall_geo_aggregation
+  category: firewall
+  rest: ['GET /firewall']
+  binding: rest
+  confidence: high
+  note: >-
+    Same REST operation, pinned to aggregate=geo. The OpenAPI documents the aggregate parameter, so
+    this is a parameter-preset tool rather than a distinct operation - three tools fan in to one path.
+- tool: get_firewall_blocked_ip_aggregation
+  category: firewall
+  rest: ['GET /firewall']
+  binding: rest
+  confidence: high
+  note: Same REST operation, pinned to aggregate=blocked_ips.
+- tool: get_compliance_insights
+  category: compliance
+  rest: ['GET /compliance_insights']
+  binding: rest
+  confidence: high
+mcp_only: []
+rest_only: []
+coverage:
+  tools_named: 13
+  tools_bound: 13
+  mcp_only: 0
+  rest_operations_total: 11
+  rest_operations_with_a_tool: 11
+  note: >-
+    Full two-way coverage. The tool count exceeds the operation count only because GET /firewall is
+    projected as three tools (raw events, geo aggregation, blocked-IP aggregation) that differ by a
+    preset aggregate parameter.

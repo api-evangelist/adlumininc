@@ -1,0 +1,57 @@
+generated: '2026-09-07'
+method: derived
+source: openapi/adlumininc-api-openapi-original.yml
+format: custom-json
+media_type: application/json
+rfc9457: false
+envelope:
+  schema: Error
+  fields:
+    error: 'machine-readable snake_case code'
+    message: 'human-readable sentence'
+  note: >-
+    Adlumin does not use RFC 9457 problem+json. The envelope is a flat two-field object; there is no
+    type URI, no instance, no per-field detail array. The `error` value is the only machine token an
+    agent can branch on.
+problems:
+- status: 401
+  code: unauthorized
+  title: Missing or invalid Bearer token
+  detail_example: Bearer token is missing or has expired
+  remediation: >-
+    Re-issue a tenant Bearer JWT from the Adlumin platform and resend. The API cannot distinguish an
+    absent token from an expired one in the response body, so treat both the same.
+  applies_to: all 11 operations
+  source_operation: 'openapi/adlumininc-api-openapi-original.yml#components/responses/Unauthorized'
+- status: 400
+  code: bad_request
+  title: Request body or parameters are malformed
+  detail_example: detection_ids must be a non-empty array
+  remediation: Fix the payload shape before retrying; retrying the same body will fail identically.
+  applies_to: 'POST /acknowledge_detections'
+  source_operation: 'openapi/adlumininc-api-openapi-original.yml#components/responses/BadRequest'
+- status: 422
+  code: unprocessable_entity
+  title: Request is valid but cannot be processed due to business logic constraints
+  detail_example: "Invalid date range: 'since' must be before 'until'"
+  remediation: Correct the semantic conflict (most commonly an inverted since/until window) and retry.
+  applies_to: 'GET /detections'
+  source_operation: 'openapi/adlumininc-api-openapi-original.yml#components/responses/UnprocessableEntity'
+coverage:
+  operations_total: 11
+  operations_with_401: 11
+  operations_with_400: 1
+  operations_with_422: 1
+  documented_5xx: 0
+  documented_429: 0
+gaps:
+- >-
+  No 403 is documented, so an authenticated token lacking rights to a resource has no defined shape.
+- >-
+  No 404 is documented on any operation, including the ones that take filters that can match nothing.
+- >-
+  No 429 and no 5xx family are documented anywhere. An agent has no published contract for what a
+  rate-limited or failed call looks like, which is the single largest error-semantics gap here.
+- >-
+  Error codes are not enumerated as an enum in the schema; the three values above are read from the
+  response examples, so a client cannot exhaustively switch on them from the contract alone.

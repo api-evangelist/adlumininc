@@ -1,0 +1,83 @@
+generated: '2026-09-07'
+method: searched
+source: >-
+  openapi/adlumininc-api-openapi-original.yml; https://trustcenter.n-able.com/;
+  https://www.n-able.com/security-and-privacy/vulnerability-disclosure-policy;
+  https://developer.n-able.com/.well-known/api-catalog
+standards:
+- id: openapi-3.0
+  conforms: true
+  evidence: 'openapi: 3.0.3 in openapi/adlumininc-api-openapi-original.yml, published by the provider'
+- id: http-bearer-auth
+  conforms: true
+  evidence: 'components.securitySchemes.BearerAuth type http, scheme bearer, bearerFormat JWT'
+- id: oauth2
+  conforms: false
+  evidence: No oauth2 securityScheme and no OAuth flow documented; tokens are issued out of band.
+- id: oidc
+  conforms: false
+  evidence: /.well-known/openid-configuration returns 404 or a redirect on every Adlumin and N-able host probed.
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: >-
+    Errors use a flat {error, message} JSON object with media type application/json, not
+    application/problem+json.
+- id: rfc9727-api-catalog
+  conforms: true
+  evidence: >-
+    https://developer.n-able.com/.well-known/api-catalog returns 200 application/linkset+json and its
+    linkset anchors https://developer.n-able.com/adlumin with service-desc and service-doc links.
+- id: rfc9116-security-txt
+  conforms: partial
+  evidence: >-
+    https://www.n-able.com/.well-known/security.txt returns 200 with Contact, Policy, Canonical,
+    Encryption and Preferred-Languages fields, but its Expires value (2024-06-29) has lapsed, which
+    RFC 9116 section 2.5.5 says means the document should not be relied upon.
+- id: rfc8594-sunset-header
+  conforms: false
+  evidence: No Sunset or Deprecation header support and no deprecation policy is published.
+- id: pagination
+  conforms: true
+  evidence: 'page/per_page query parameters with a total_count response field, defined in components.parameters'
+- id: idempotency-key
+  conforms: false
+  evidence: >-
+    No Idempotency-Key header anywhere in the contract. The single mutating operation is replay-safe
+    by semantics only - see conventions/adlumininc-conventions.yml.
+- id: mcp
+  conforms: true
+  evidence: >-
+    First-party MCP server published at
+    https://developer.n-able.com/adlumin/page/the-mcp-server-start-guide, built on FastMCP and
+    exposing 13 tools over stdio against https://api.adlumin.com/v1.
+- id: iso-8601
+  conforms: true
+  evidence: since/until and every timestamp field use format date-time.
+domain_standards:
+  asserted: []
+  note: >-
+    REWARD-ONLY CHECK, HONESTLY EMPTY. The security-operations market does have machine-readable
+    domain standards an XDR/SIEM contract could declare - OCSF event classes, STIX 2.1 / TAXII 2.1
+    for indicator exchange, MITRE ATT&CK technique identifiers on a detection, OpenC2 for response
+    actions, SCIM for user provisioning. None of them appears anywhere in the Adlumin contract:
+    Detection carries a free-text detection_type ("Lateral Movement") rather than an ATT&CK technique
+    ID, there is no STIX or TAXII surface, and no OCSF class_uid. A consumer already speaking any of
+    those standards still needs a bespoke connector for Adlumin. Nothing is asserted here because
+    nothing is declared; this is a gap in the contract, not a penalty.
+compliance_program:
+  published: true
+  url: https://trustcenter.n-able.com/
+  operator: N-able, Inc.
+  certifications:
+  - ISO/IEC 27001 (certified, auditor Schellman)
+  - SOC 2
+  - CCPA
+  - GDPR
+  - HIPAA
+  note: >-
+    Certifications are held and published by N-able, Adlumin's operator since November 2024. The trust
+    center lists an "Adlumin Due Diligence Packet" as a distinct document set, so Adlumin is
+    represented in the program rather than only implied by it. Documents are request-gated behind the
+    trust center's own access flow; the listing itself is public.
+  evidence:
+  - {url: 'https://trustcenter.n-able.com/', http_status: 200}

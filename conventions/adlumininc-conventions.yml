@@ -1,0 +1,110 @@
+generated: '2026-09-07'
+method: derived
+source: >-
+  openapi/adlumininc-api-openapi-original.yml (info.description, components.parameters,
+  components.responses) plus https://developer.n-able.com/adlumin/reference
+authentication:
+  style: bearer
+  header: Authorization
+  format: 'Bearer <JWT>'
+  scope: per-tenant
+  docs: https://developer.n-able.com/adlumin/reference/get_detections
+  note: >-
+    Single scheme (BearerAuth, http/bearer, bearerFormat JWT) applied globally via a root-level
+    security requirement. Tokens are issued by the Adlumin platform and scoped to one tenant, so the
+    tenant is implied by the credential and never appears as a path or query parameter.
+pagination:
+  style: page-number
+  request_params:
+    page: {in: query, type: integer, minimum: 1, default: 1, description: 1-indexed page number}
+    per_page: {in: query, type: integer, minimum: 1, maximum: 100, default: 25}
+  response_fields: [total_count, page, per_page, data]
+  envelope: PaginatedResponse allOf-composed with a typed data array
+  cursor: false
+  note: >-
+    info.description calls this "cursor-style pagination", but the contract is page/per_page with a
+    total_count - offset pagination by any other name. There is no cursor or next-page token, so a
+    client walks pages by incrementing page until page * per_page >= total_count.
+date_filtering:
+  params: [since, until]
+  format: ISO 8601 date-time
+  applies_to: 9 of 11 operations
+  note: 'A since later than until is rejected with 422 unprocessable_entity.'
+sorting:
+  params: [sort_column, sort_dir]
+  sort_dir_enum: [asc, desc]
+  default: 'newest-first by event_time on /detections; sort_dir defaults to desc'
+search:
+  param: search
+  style: free-text across key fields
+field_expansion:
+  supported: false
+metadata:
+  supported: false
+request_tracing:
+  request_id_header: null
+  note: No request-id or correlation header is documented in the contract or the reference.
+versioning:
+  style: uri-path
+  current: v1
+  base: https://api.adlumin.com/v1
+  info_version: 1.0.0
+error_envelope:
+  shape: '{ "error": "<machine_code>", "message": "<human sentence>" }'
+  media_type: application/json
+  rfc9457: false
+  catalog: errors/adlumininc-problem-types.yml
+rate_limit_signaling:
+  headers: []
+  status_on_exhaustion: null
+  documented: false
+  note: >-
+    Neither the OpenAPI nor the reference documents a 429 response, a Retry-After header or any
+    RateLimit-* family. An agent has no runtime backoff signal to read. See
+    rate-limits/adlumininc-rate-limits.yml.
+idempotency:
+  header: null
+  coverage: partial
+  scope:
+  - POST /acknowledge_detections
+  mechanism: natural-idempotency
+  retention: n/a
+  note: >-
+    There is no Idempotency-Key header anywhere in the contract. What exists is a documented
+    replay-safe contract on the single mutating operation - POST /acknowledge_detections is defined
+    to return an already_acknowledged array for IDs that were in that state before the call, and its
+    description states an acknowledged detection is not deleted, so re-sending the same detection_ids
+    converges rather than double-applying. That is real replay protection, but it covers exactly one
+    operation because the mutating surface IS one operation; it is recorded as partial rather than
+    full because the mechanism is a per-operation semantic, not a key the client controls. If Adlumin
+    adds any further write endpoint, nothing in the contract carries this guarantee over to it.
+dry_run_mode:
+  supported: false
+  coverage: none
+  note: No preview, validate-only or dry-run parameter exists on the mutating operation.
+reversibility:
+  applicable: true
+  grade: none
+  write_surface:
+  - operation: POST /acknowledge_detections
+    consequence: 'Removes detections from the active dashboard view for the whole tenant.'
+    reversal_operation: null
+    reversal_window: null
+    note: >-
+      No un-acknowledge, restore, or reverse operation is published, and no parameter on
+      acknowledge_detections sets acknowledged back to false. The docs do state that acknowledgement
+      is non-destructive - the detection remains queryable through GET /detections with
+      acknowledged=true - so the underlying record survives, but recovering the pre-call dashboard
+      state is not something the public API offers. The optional suppress_dashboard flag makes the
+      effect broader, not narrower, and has no documented undo either. No window is asserted here
+      because the documentation states none.
+  summary: >-
+    One write operation, no reversal path published. An agent acting on this API should treat
+    acknowledgement as one-way from the API's point of view and confirm with a human before
+    bulk-acknowledging, particularly with suppress_dashboard set.
+cross_links:
+  errors: errors/adlumininc-problem-types.yml
+  lifecycle: lifecycle/adlumininc-lifecycle.yml
+  authentication: authentication/adlumininc-authentication.yml
+  rate_limits: rate-limits/adlumininc-rate-limits.yml
+  data_model: data-model/adlumininc-data-model.yml

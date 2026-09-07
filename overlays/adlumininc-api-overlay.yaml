@@ -1,0 +1,75 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Adlumin XDR/MDR API
+  version: 1.0.0
+extends: openapi/adlumininc-api-openapi-original.yml
+x-generated: '2026-09-07'
+x-method: generated
+x-source: >-
+  Derived from this repository's own artifacts (conventions, errors, rate-limits, lifecycle,
+  data-model, mcp) - never applied to the harvested original, which stays verbatim.
+actions:
+- target: $.info
+  update:
+    x-apievangelist-slug: adlumininc
+    x-apievangelist-profile: https://apis.io/provider/adlumininc/
+    x-provider-operator: N-able, Inc.
+    x-provider-note: >-
+      Adlumin, Inc. was acquired by N-able in November 2024; the developer portal is a child project
+      on developer.n-able.com and adlumin.com redirects to n-able.com/products/adlumin.
+    x-contract-source: >-
+      adlumin_api_swagger.yaml, published verbatim by the provider inside the downloadable MCP server
+      bundle and rendered on the ReadMe developer portal.
+- target: $.info
+  update:
+    x-conventions: conventions/adlumininc-conventions.yml
+    x-error-catalog: errors/adlumininc-problem-types.yml
+    x-data-model: data-model/adlumininc-data-model.yml
+    x-lifecycle: lifecycle/adlumininc-lifecycle.yml
+    x-rate-limits:
+      documented: false
+      note: No 429, no Retry-After and no RateLimit-* header family is documented anywhere.
+- target: $.info
+  update:
+    x-agent-readiness:
+      mcp_server: mcp/adlumininc-mcp.yml
+      mcp_mode: local-stdio
+      tool_crosswalk: mcp/adlumininc-tool-crosswalk.yml
+      agent_skills: skills/_index.yml
+      agent_card: false
+- target: $.paths['/acknowledge_detections'].post
+  update:
+    x-agentic-access:
+      action-class: acting
+      consequence: write
+      reversible: false
+      reversal-operation: null
+      audit: required
+      human-in-the-loop: recommended
+      note: >-
+        The only mutating operation on the surface. No reversal path is published, and
+        suppress_dashboard widens the blast radius across the whole tenant dashboard, so an agent
+        should confirm before bulk-acknowledging.
+    x-idempotency:
+      key-header: null
+      mechanism: natural-idempotency
+      evidence: >-
+        The response separates already_acknowledged from acknowledged, so re-sending the same
+        detection_ids converges rather than double-applying.
+- target: $.paths['/firewall'].get
+  update:
+    x-mcp-tools:
+    - get_firewall_events
+    - get_firewall_geo_aggregation
+    - get_firewall_blocked_ip_aggregation
+    x-note: >-
+      One REST operation is projected as three MCP tools that differ only by a preset aggregate
+      parameter - see mcp/adlumininc-tool-crosswalk.yml.
+- target: $.components.schemas.Error
+  update:
+    x-format: custom-json
+    x-rfc9457: false
+    x-known-codes: [unauthorized, bad_request, unprocessable_entity]
+    x-note: >-
+      The three codes are read from response examples, not from an enum in the schema; a client
+      cannot switch exhaustively on the contract alone.

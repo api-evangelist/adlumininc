@@ -1,0 +1,15 @@
+generated: '2026-09-07'
+method: derived
+source: openapi/adlumininc-api-openapi-original.yml
+summary:
+  types:
+  - http
+schemes:
+- name: BearerAuth
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+  description: JWT issued by the Adlumin authentication service. Pass in the Authorization header
+    as `Bearer <token>`.
+  sources:
+  - openapi/adlumininc-api-openapi-original.yml

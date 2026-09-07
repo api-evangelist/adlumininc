@@ -1,0 +1,1218 @@
+openapi: 3.0.3
+info:
+  title: Adlumin XDR/MDR API
+  description: |
+    The Adlumin API provides programmatic access to your organization's security data,
+    including detections, at-risk assets, endpoint telemetry, network health, firewall
+    events, and compliance insights.
+
+    ## Authentication
+    All requests require a Bearer token passed in the `Authorization` header.
+    Tokens are scoped per tenant.
+
+    ## Pagination
+    List endpoints support cursor-style pagination via `page` and `per_page` parameters.
+    Responses include a `total_count` field to support calculating total pages.
+
+    ## Date Filtering
+    Most endpoints accept `since` and `until` query parameters (ISO 8601 format)
+    to scope results to a time window.
+  version: "1.0.0"
+  contact:
+    name: Adlumin Support
+    url: https://www.adlumin.com
+
+servers:
+  - url: https://api.adlumin.com/v1
+    description: Production
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Detections
+    description: Security detection events and acknowledgement
+  - name: At-Risk Assets
+    description: Hosts, groups, and shares flagged as at-risk
+  - name: Endpoint
+    description: Endpoint agent and device telemetry
+  - name: Network
+    description: Network health and traffic data
+  - name: Firewall
+    description: Firewall event logs
+  - name: Compliance
+    description: Compliance and policy insights
+
+paths:
+
+  # ──────────────────────────────────────────────
+  # DETECTIONS
+  # ──────────────────────────────────────────────
+  /detections:
+    get:
+      tags: [Detections]
+      summary: List detections
+      description: |
+        Returns a paginated list of security detections for the authenticated tenant.
+        Results can be filtered by severity, date range, acknowledgement status, and
+        free-text search. Default sort is newest-first by `event_time`.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Since'
+        - $ref: '#/components/parameters/Until'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortColumn'
+        - $ref: '#/components/parameters/SortDir'
+        - name: severity
+          in: query
+          description: Filter by one or more severity levels (comma-separated)
+          schema:
+            type: string
+            example: "Critical,High"
+        - name: acknowledged
+          in: query
+          description: Filter by acknowledgement status
+          schema:
+            type: boolean
+        - name: status
+          in: query
+          description: Filter by MDR workflow status
+          schema:
+            type: string
+            enum:
+              - Incident Declared
+              - Request Customer Review
+              - In Progress
+              - Received By MDR
+              - Escalated
+              - Rejected
+      responses:
+        '200':
+          description: Paginated list of detections
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Detection'
+              example:
+                total_count: 142
+                page: 1
+                per_page: 25
+                data:
+                  - id: "det_8a2f1c"
+                    severity: "Critical"
+                    acknowledged: false
+                    detection_type: "Lateral Movement"
+                    event_time: "2026-05-20T14:32:00Z"
+                    source_host: "WORKSTATION-01"
+                    destination_host: "DC-01"
+                    account_used: "jdoe"
+                    information: "SMB lateral movement detected between endpoints"
+                    status: "Received By MDR"
+                    created_at: "2026-05-20T14:33:10Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /acknowledge_detections:
+    post:
+      tags: [Detections]
+      summary: Acknowledge detections
+      description: |
+        Marks one or more detections as acknowledged, removing them from the active
+        dashboard view. An acknowledged detection is not deleted — it remains available
+        via the `/detections` endpoint with `acknowledged=true`.
+
+        Pass an array of detection IDs to bulk-acknowledge. The response confirms
+        which IDs were updated and which (if any) were not found or already acknowledged.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [detection_ids]
+              properties:
+                detection_ids:
+                  type: array
+                  description: One or more detection IDs to acknowledge
+                  minItems: 1
+                  items:
+                    type: string
+                  example: ["det_8a2f1c", "det_9b3d2e"]
+                acknowledged_by:
+                  type: string
+                  description: Username performing the acknowledgement (defaults to authenticated user)
+                  example: "analyst@company.com"
+                suppress_dashboard:
+                  type: boolean
+                  description: Also suppress the detections from the MDR dashboard view
+                  default: false
+            example:
+              detection_ids: ["det_8a2f1c", "det_9b3d2e"]
+              acknowledged_by: "analyst@company.com"
+              suppress_dashboard: false
+      responses:
+        '200':
+          description: Acknowledgement result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  acknowledged:
+                    type: array
+                    description: IDs that were successfully acknowledged
+                    items:
+                      type: string
+                  not_found:
+                    type: array
+                    description: IDs that could not be located
+                    items:
+                      type: string
+                  already_acknowledged:
+                    type: array
+                    description: IDs that were already in an acknowledged state
+                    items:
+                      type: string
+              example:
+                acknowledged: ["det_8a2f1c", "det_9b3d2e"]
+                not_found: []
+                already_acknowledged: []
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ──────────────────────────────────────────────
+  # AT-RISK ASSETS
+  # ──────────────────────────────────────────────
+  /at_risk_groups:
+    get:
+      tags: [At-Risk Assets]
+      summary: List at-risk Active Directory groups
+      description: |
+        Returns Active Directory groups flagged as at-risk due to overly broad
+        permissions, privileged access, or policy violations. Results exclude
+        groups that have been granted a full risk exemption.
+
+        Use the `type` parameter to switch between active at-risk groups and
+        groups currently in an exempted state.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortColumn'
+        - $ref: '#/components/parameters/SortDir'
+        - name: type
+          in: query
+          description: Result set to return
+          schema:
+            type: string
+            enum: [risky_groups, risky_exemptions]
+            default: risky_groups
+        - name: privileged
+          in: query
+          description: Filter to privileged groups only
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated list of at-risk groups
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AtRiskGroup'
+              example:
+                total_count: 8
+                page: 1
+                per_page: 25
+                data:
+                  - id: "grp_4c7a9f"
+                    group_name: "Domain Admins"
+                    domain: "corp.example.com"
+                    privileged: true
+                    at_risk: true
+                    exclusion: false
+                    account_members_count: 12
+                    computer_members_count: 0
+                    group_members_count: 2
+                    group_member_of_count: 1
+                    note: ""
+                    is_domain_group: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /at_risk_shares:
+    get:
+      tags: [At-Risk Assets]
+      summary: List at-risk network shares
+      description: |
+        Returns network shares that have been identified as at-risk due to
+        overly permissive access controls (e.g., world-readable or writable shares,
+        shares accessible to privileged groups). Excludes shares with active exemptions.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortColumn'
+        - $ref: '#/components/parameters/SortDir'
+        - name: type
+          in: query
+          description: Result set to return
+          schema:
+            type: string
+            enum: [risky_shares, risky_exemptions]
+            default: risky_shares
+      responses:
+        '200':
+          description: Paginated list of at-risk network shares
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AtRiskShare'
+              example:
+                total_count: 3
+                page: 1
+                per_page: 25
+                data:
+                  - id: "shr_1d9e2b"
+                    share_name: "Finance$"
+                    share_path: "\\\\FILESERVER-01\\Finance$"
+                    host_id: "hst_7f3c1a"
+                    hostname: "FILESERVER-01"
+                    at_risk: true
+                    exclusion: false
+                    note: "Open read access detected"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /at_risk_systems:
+    get:
+      tags: [At-Risk Assets]
+      summary: List at-risk systems (hosts)
+      description: |
+        Returns hosts/workstations flagged as at-risk. A system may be at-risk due
+        to misconfiguration, stale patches, privileged account exposure, or anomalous
+        activity. Results support filtering by operating system, domain, and exemption state.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortColumn'
+        - $ref: '#/components/parameters/SortDir'
+        - name: type
+          in: query
+          description: Result set to return
+          schema:
+            type: string
+            enum: [risky_systems, risky_exemptions]
+            default: risky_systems
+        - name: operating_system
+          in: query
+          description: Filter by OS string (partial match)
+          schema:
+            type: string
+            example: "Windows Server"
+        - name: domain
+          in: query
+          description: Filter by domain name
+          schema:
+            type: string
+            example: "corp.example.com"
+      responses:
+        '200':
+          description: Paginated list of at-risk systems
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AtRiskSystem'
+              example:
+                total_count: 15
+                page: 1
+                per_page: 25
+                data:
+                  - id: "hst_7f3c1a"
+                    hostname: "WORKSTATION-22"
+                    ip_address: "10.0.1.55"
+                    operating_system: "Windows 11 Pro"
+                    domain: "corp.example.com"
+                    mac_address: "AA:BB:CC:DD:EE:FF"
+                    at_risk: true
+                    exclusion: false
+                    note: ""
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ──────────────────────────────────────────────
+  # ENDPOINT
+  # ──────────────────────────────────────────────
+  /endpoint_data:
+    get:
+      tags: [Endpoint]
+      summary: List endpoint agent data
+      description: |
+        Returns endpoint security agent telemetry for devices managed under the
+        authenticated tenant. Each record reflects the last-known state reported
+        by the installed agent (Sentinel One, Carbon Black, etc.), including agent
+        version, policy, and connectivity status.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Since'
+        - $ref: '#/components/parameters/Until'
+        - $ref: '#/components/parameters/Search'
+        - name: agent_type
+          in: query
+          description: Filter by endpoint agent product
+          schema:
+            type: string
+            enum: [sentinel_one, carbon_black, crowdstrike, defender]
+        - name: online
+          in: query
+          description: Filter by agent connectivity status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated list of endpoint agent records
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EndpointData'
+              example:
+                total_count: 200
+                page: 1
+                per_page: 25
+                data:
+                  - id: "ep_2c5f8d"
+                    hostname: "LAPTOP-45"
+                    ip_address: "10.0.2.14"
+                    agent_type: "sentinel_one"
+                    agent_version: "22.3.1.184"
+                    policy_name: "Default Policy"
+                    online: true
+                    last_seen: "2026-05-26T08:10:00Z"
+                    os: "Windows 11 Pro"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /complete_endpoint_data:
+    get:
+      tags: [Endpoint]
+      summary: Get aggregated endpoint summary
+      description: |
+        Returns a comprehensive rolled-up summary of endpoint health across the
+        tenant, combining at-risk counts, sensor health metrics, compliance posture,
+        and network health in a single response. Ideal for dashboard widgets and
+        executive summaries.
+      parameters:
+        - $ref: '#/components/parameters/Since'
+        - $ref: '#/components/parameters/Until'
+      responses:
+        '200':
+          description: Aggregated endpoint summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteEndpointData'
+              example:
+                tenant_id: "tenant_acme"
+                generated_at: "2026-05-26T09:00:00Z"
+                at_risk_objects:
+                  at_risk_systems_count: 15
+                  at_risk_shares_count: 3
+                  at_risk_groups_count: 8
+                stale_sensors_data:
+                  host_count: 200
+                  stale_sensors_count: 12
+                compliance_insights_data:
+                  stale_accounts_count: 5
+                  password_never_expire_count: 22
+                  password_reversible_encryption_count: 1
+                  stale_passwords_count: 9
+                  gpo_violations_count: 4
+                network_health_data:
+                  network_health_score: 74
+                  stats:
+                    - field: "Unacknowledged Detections"
+                      value: 3
+                    - field: "Privileged Domain Accounts"
+                      value: 18
+                service_enablement_data:
+                  sentinel_one_enabled: true
+                  mdr_enabled: true
+                  siem_enabled: false
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /device_data:
+    get:
+      tags: [Endpoint]
+      summary: List registered devices
+      description: |
+        Returns inventory-level device records for all hosts registered with the
+        tenant. Unlike `/endpoint_data` (which reflects agent state), this endpoint
+        returns the base device inventory including MAC address, OS, and domain
+        membership regardless of agent installation status.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortColumn'
+        - $ref: '#/components/parameters/SortDir'
+        - name: domain
+          in: query
+          description: Filter by domain name
+          schema:
+            type: string
+        - name: operating_system
+          in: query
+          description: Partial match against OS string
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated device inventory
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DeviceData'
+              example:
+                total_count: 350
+                page: 1
+                per_page: 25
+                data:
+                  - id: "dev_9a1b2c"
+                    hostname: "SERVER-DB-01"
+                    ip_address: "10.0.0.10"
+                    mac_address: "00:11:22:33:44:55"
+                    operating_system: "Windows Server 2022"
+                    domain: "corp.example.com"
+                    last_seen: "2026-05-25T22:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ──────────────────────────────────────────────
+  # NETWORK
+  # ──────────────────────────────────────────────
+  /network_data:
+    get:
+      tags: [Network]
+      summary: Get network health statistics
+      description: |
+        Returns the full set of network health metrics for the tenant. Each metric
+        represents a risk indicator (e.g., stale accounts, locked-out accounts,
+        GPO violations) with a current count and a contribution to the overall
+        network health score (0–100, higher is healthier).
+
+        Metric categories include:
+        - Active Directory hygiene (stale accounts, expired passwords, reversible encryption)
+        - Detection posture (unacknowledged high/critical detections)
+        - Privilege management (delegated/privileged domain accounts)
+        - IT operations (service account failures, circular groups)
+      parameters:
+        - $ref: '#/components/parameters/Since'
+        - $ref: '#/components/parameters/Until'
+      responses:
+        '200':
+          description: Network health metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkData'
+              example:
+                network_health_score: 74
+                last_calculated: "2026-05-26T06:00:00Z"
+                stats:
+                  - network_health_field: "Unacknowledged Detections"
+                    network_health_value: 3
+                  - network_health_field: "Local Administrator Elevated"
+                    network_health_value: 7
+                  - network_health_field: "Locked Out Accounts"
+                    network_health_value: 2
+                  - network_health_field: "Service Account Failures (IT Ops)"
+                    network_health_value: 1
+                  - network_health_field: "Expired Passwords"
+                    network_health_value: 4
+                  - network_health_field: "Delegated Privileged Accounts"
+                    network_health_value: 18
+                  - network_health_field: "Reversible Encryption Usage"
+                    network_health_value: 1
+                  - network_health_field: "Clear Text Password Usage"
+                    network_health_value: 0
+                  - network_health_field: "GPO Violations"
+                    network_health_value: 4
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ──────────────────────────────────────────────
+  # FIREWALL
+  # ──────────────────────────────────────────────
+  /firewall:
+    get:
+      tags: [Firewall]
+      summary: List firewall events
+      description: |
+        Returns firewall log events from the tenant's network security devices.
+        Events are sourced from the tenant's Elasticsearch index and include
+        source/destination IPs, geographic data, action taken, and a UBA risk score.
+
+        Use `action` to filter to blocked/dropped traffic only. Use `since`/`until`
+        to scope to a time window. Geographic aggregations (top source/destination
+        countries) are available as a separate query using `aggregate=geo`.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Since'
+        - $ref: '#/components/parameters/Until'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortColumn'
+        - $ref: '#/components/parameters/SortDir'
+        - name: action
+          in: query
+          description: Filter by firewall action
+          schema:
+            type: string
+            enum: [block, deny, drop, allow]
+        - name: source_country
+          in: query
+          description: Filter by source country code (ISO 3166-1 alpha-2)
+          schema:
+            type: string
+            example: "CN"
+        - name: destination_country
+          in: query
+          description: Filter by destination country code (ISO 3166-1 alpha-2)
+          schema:
+            type: string
+        - name: aggregate
+          in: query
+          description: |
+            Return aggregations instead of raw events.
+            - `geo`: top source/destination countries
+            - `blocked_ips`: top 15 blocked source IPs by month
+          schema:
+            type: string
+            enum: [geo, blocked_ips]
+      responses:
+        '200':
+          description: Firewall events or aggregation results
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/PaginatedResponse'
+                      - type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/FirewallEvent'
+                  - $ref: '#/components/schemas/FirewallAggregation'
+              examples:
+                raw_events:
+                  summary: Raw firewall events
+                  value:
+                    total_count: 10482
+                    page: 1
+                    per_page: 25
+                    data:
+                      - id: "fw_3d9e1f"
+                        source_address: "185.220.101.5"
+                        destination_address: "10.0.0.1"
+                        source_country_code: "RU"
+                        destination_country_code: "US"
+                        action: "block"
+                        timewritten: "2026-05-25T23:44:11Z"
+                        ubascore: 87
+                        firewall_data: "Blocked inbound SSH from known Tor exit node"
+                geo_aggregation:
+                  summary: Geographic aggregation
+                  value:
+                    aggregation_type: "geo"
+                    top_source_countries:
+                      - country_code: "CN"
+                        event_count: 3420
+                      - country_code: "RU"
+                        event_count: 1897
+                    top_destination_countries:
+                      - country_code: "US"
+                        event_count: 8901
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ──────────────────────────────────────────────
+  # COMPLIANCE
+  # ──────────────────────────────────────────────
+  /compliance_insights:
+    get:
+      tags: [Compliance]
+      summary: Get compliance insights
+      description: |
+        Returns compliance and policy violation metrics for the tenant, covering
+        Active Directory hygiene, Group Policy violations, and detection posture.
+        These metrics feed the Compliance Insights section of the Adlumin dashboard
+        and can be used to track improvement over time.
+
+        Metric definitions:
+        | Field | Description |
+        |---|---|
+        | `stale_accounts_count` | AD accounts inactive for 90+ days |
+        | `password_never_expire_count` | Accounts with password expiry disabled |
+        | `password_reversible_encryption_count` | Accounts storing passwords with reversible encryption |
+        | `stale_passwords_count` | Passwords not changed in 90+ days |
+        | `gpo_violations_count` | Group Policy Object rule violations |
+      parameters:
+        - $ref: '#/components/parameters/Since'
+        - $ref: '#/components/parameters/Until'
+      responses:
+        '200':
+          description: Compliance insight metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceInsights'
+              example:
+                stale_accounts_count: 5
+                password_never_expire_count: 22
+                password_reversible_encryption_count: 1
+                stale_passwords_count: 9
+                gpo_violations_count: 4
+                network_health_stats:
+                  - network_health_field: "IT Operations Failures"
+                    network_health_value: 3
+                  - network_health_field: "Privileged Domain Accounts"
+                    network_health_value: 18
+                  - network_health_field: "Circular Groups"
+                    network_health_value: 2
+                  - network_health_field: "High Detections"
+                    network_health_value: 5
+                  - network_health_field: "Critical Detections"
+                    network_health_value: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+# ──────────────────────────────────────────────
+# COMPONENTS
+# ──────────────────────────────────────────────
+components:
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by the Adlumin authentication service. Pass in the Authorization header as `Bearer <token>`.
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of records per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: "2026-05-01T00:00:00Z"
+
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: "2026-05-31T23:59:59Z"
+
+    Search:
+      name: search
+      in: query
+      description: Free-text search term applied across key fields
+      schema:
+        type: string
+
+    SortColumn:
+      name: sort_column
+      in: query
+      description: Field name to sort by
+      schema:
+        type: string
+
+    SortDir:
+      name: sort_dir
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+
+  schemas:
+
+    PaginatedResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of records matching the query
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    Detection:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique detection identifier
+        severity:
+          type: string
+          enum: [Critical, High, Medium, Low, Informational]
+        acknowledged:
+          type: boolean
+          description: Whether the detection has been acknowledged by an analyst
+        acknowledged_by:
+          type: string
+          nullable: true
+          description: Username who acknowledged the detection
+        dashboard_suppression:
+          type: boolean
+          description: Whether the detection is suppressed from the MDR dashboard
+        detection_type:
+          type: string
+          description: Classification label for the detection (e.g., "Lateral Movement")
+        event_time:
+          type: string
+          format: date-time
+          description: Timestamp when the underlying event occurred
+        source_host:
+          type: string
+          nullable: true
+          description: Source hostname
+        destination_host:
+          type: string
+          nullable: true
+          description: Destination hostname
+        account_used:
+          type: string
+          nullable: true
+          description: Account name associated with the event
+        information:
+          type: string
+          description: Human-readable description of the detection
+        status:
+          type: string
+          enum:
+            - Incident Declared
+            - Request Customer Review
+            - In Progress
+            - Received By MDR
+            - Escalated
+            - Rejected
+          description: MDR workflow status
+        corresponding_ticket:
+          type: string
+          nullable: true
+          description: URL to the linked Jira ticket, if any
+        cleared_from_abakis:
+          type: boolean
+          description: Whether MDR has reviewed and cleared this detection
+        created_at:
+          type: string
+          format: date-time
+
+    AtRiskGroup:
+      type: object
+      properties:
+        id:
+          type: string
+        group_name:
+          type: string
+        domain:
+          type: string
+        privileged:
+          type: boolean
+          description: Group has privileged access rights
+        at_risk:
+          type: boolean
+        exclusion:
+          type: boolean
+          description: Group has been granted a full risk exemption
+        account_members_count:
+          type: integer
+        computer_members_count:
+          type: integer
+        group_members_count:
+          type: integer
+        group_member_of_count:
+          type: integer
+          description: Number of parent groups this group belongs to
+        note:
+          type: string
+          nullable: true
+        is_domain_group:
+          type: boolean
+          description: True for domain groups; false for local groups
+
+    AtRiskShare:
+      type: object
+      properties:
+        id:
+          type: string
+        share_name:
+          type: string
+        share_path:
+          type: string
+          description: UNC path to the share
+        host_id:
+          type: string
+        hostname:
+          type: string
+        at_risk:
+          type: boolean
+        exclusion:
+          type: boolean
+        note:
+          type: string
+          nullable: true
+
+    AtRiskSystem:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        ip_address:
+          type: string
+          format: ipv4
+        operating_system:
+          type: string
+        domain:
+          type: string
+        mac_address:
+          type: string
+        at_risk:
+          type: boolean
+        exclusion:
+          type: boolean
+        note:
+          type: string
+          nullable: true
+
+    EndpointData:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        ip_address:
+          type: string
+          format: ipv4
+        agent_type:
+          type: string
+          enum: [sentinel_one, carbon_black, crowdstrike, defender]
+        agent_version:
+          type: string
+        policy_name:
+          type: string
+        online:
+          type: boolean
+          description: Whether the agent is currently connected
+        last_seen:
+          type: string
+          format: date-time
+        os:
+          type: string
+
+    CompleteEndpointData:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        at_risk_objects:
+          type: object
+          properties:
+            at_risk_systems_count:
+              type: integer
+            at_risk_shares_count:
+              type: integer
+            at_risk_groups_count:
+              type: integer
+        stale_sensors_data:
+          type: object
+          properties:
+            host_count:
+              type: integer
+              description: Total number of managed hosts
+            stale_sensors_count:
+              type: integer
+              description: Agents that have not checked in recently
+        compliance_insights_data:
+          $ref: '#/components/schemas/ComplianceInsights'
+        network_health_data:
+          type: object
+          properties:
+            network_health_score:
+              type: integer
+              minimum: 0
+              maximum: 100
+            stats:
+              type: array
+              items:
+                $ref: '#/components/schemas/NetworkHealthStat'
+        service_enablement_data:
+          type: object
+          additionalProperties:
+            type: boolean
+          description: Map of service names to enabled/disabled status
+
+    DeviceData:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        ip_address:
+          type: string
+          format: ipv4
+        mac_address:
+          type: string
+        operating_system:
+          type: string
+        domain:
+          type: string
+        last_seen:
+          type: string
+          format: date-time
+
+    NetworkData:
+      type: object
+      properties:
+        network_health_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Composite health score; higher is healthier
+        last_calculated:
+          type: string
+          format: date-time
+        stats:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetworkHealthStat'
+
+    NetworkHealthStat:
+      type: object
+      properties:
+        network_health_field:
+          type: string
+          description: Name of the metric
+          example: "Unacknowledged Detections"
+        network_health_value:
+          type: integer
+          description: Current count for this metric
+
+    FirewallEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        source_address:
+          type: string
+          format: ipv4
+        destination_address:
+          type: string
+          format: ipv4
+        source_country_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code for source IP
+          example: "RU"
+        destination_country_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code for destination IP
+          example: "US"
+        action:
+          type: string
+          enum: [block, deny, drop, allow]
+        timewritten:
+          type: string
+          format: date-time
+        ubascore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: User Behavior Analytics risk score for this event
+        firewall_data:
+          type: string
+          description: Raw event payload or human-readable summary
+
+    FirewallAggregation:
+      type: object
+      properties:
+        aggregation_type:
+          type: string
+          enum: [geo, blocked_ips]
+        top_source_countries:
+          type: array
+          items:
+            type: object
+            properties:
+              country_code:
+                type: string
+              event_count:
+                type: integer
+        top_destination_countries:
+          type: array
+          items:
+            type: object
+            properties:
+              country_code:
+                type: string
+              event_count:
+                type: integer
+        top_blocked_ips:
+          type: array
+          items:
+            type: object
+            properties:
+              source_address:
+                type: string
+                format: ipv4
+              block_count:
+                type: integer
+              month:
+                type: string
+                example: "2026-05"
+
+    ComplianceInsights:
+      type: object
+      properties:
+        stale_accounts_count:
+          type: integer
+          description: AD accounts inactive for 90+ days
+        password_never_expire_count:
+          type: integer
+          description: Accounts with password expiry disabled
+        password_reversible_encryption_count:
+          type: integer
+          description: Accounts storing passwords with reversible encryption enabled
+        stale_passwords_count:
+          type: integer
+          description: Accounts whose passwords have not changed in 90+ days
+        gpo_violations_count:
+          type: integer
+          description: Active Group Policy Object violations
+        network_health_stats:
+          type: array
+          description: Additional granular compliance metrics
+          items:
+            $ref: '#/components/schemas/NetworkHealthStat'
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "unauthorized"
+            message: "Bearer token is missing or has expired"
+
+    BadRequest:
+      description: Request body or parameters are malformed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "bad_request"
+            message: "detection_ids must be a non-empty array"
+
+    UnprocessableEntity:
+      description: Request is valid but cannot be processed due to business logic constraints
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "unprocessable_entity"
+            message: "Invalid date range: 'since' must be before 'until'"

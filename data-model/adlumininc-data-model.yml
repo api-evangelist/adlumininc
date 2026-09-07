@@ -1,0 +1,135 @@
+generated: '2026-09-07'
+method: derived
+source: openapi/adlumininc-api-openapi-original.yml
+note: >-
+  Derived from components.schemas $ref links and id-reference fields. The Adlumin model is a shallow
+  star: a tenant (implied by the Bearer token, never a field except on CompleteEndpointData) owns six
+  flat collections that are joined by hostname rather than by foreign key. Only two genuine $ref
+  relationships exist in the whole contract.
+id_conventions:
+  detection: 'det_<hex>  (example det_8a2f1c)'
+  others: opaque string ids; no documented prefixes
+  note: >-
+    Only Detection ids show a documented prefix in the examples. The at-risk, endpoint and device
+    schemas all expose a bare `id` string with no stated format or namespace, so ids are not
+    self-describing across collections.
+entities:
+- name: Detection
+  collection: /detections
+  key: id
+  fields: 15
+  mutable: true
+  note: The only entity with a write path (bulk acknowledgement).
+- name: AtRiskGroup
+  collection: /at_risk_groups
+  key: id
+  fields: 12
+- name: AtRiskShare
+  collection: /at_risk_shares
+  key: id
+  fields: 8
+- name: AtRiskSystem
+  collection: /at_risk_systems
+  key: id
+  fields: 9
+- name: EndpointData
+  collection: /endpoint_data
+  key: id
+  fields: 9
+- name: DeviceData
+  collection: /device_data
+  key: id
+  fields: 7
+- name: NetworkData
+  collection: /network_data
+  key: null
+  singleton: true
+  fields: 3
+- name: NetworkHealthStat
+  embedded_in: [NetworkData, ComplianceInsights]
+  key: network_health_field
+- name: FirewallEvent
+  collection: /firewall
+  key: id
+  fields: 9
+- name: FirewallAggregation
+  collection: /firewall
+  singleton: true
+  note: Returned instead of FirewallEvent when the aggregate parameter is set.
+- name: ComplianceInsights
+  collection: /compliance_insights
+  singleton: true
+  fields: 6
+- name: CompleteEndpointData
+  collection: /complete_endpoint_data
+  singleton: true
+  note: Cross-domain rollup; the only schema carrying an explicit tenant_id.
+- name: PaginatedResponse
+  role: envelope
+  note: allOf-composed with each list operation's typed data array.
+- name: Error
+  role: envelope
+relationships:
+- from: NetworkData
+  to: NetworkHealthStat
+  type: has_many
+  via: stats
+  binding: $ref
+- from: ComplianceInsights
+  to: NetworkHealthStat
+  type: has_many
+  via: network_health_stats
+  binding: $ref
+- from: AtRiskShare
+  to: AtRiskSystem
+  type: belongs_to
+  via: host_id
+  binding: id-reference
+  confidence: medium
+  note: >-
+    host_id is described as the host the share lives on. The contract does not state that it resolves
+    against AtRiskSystem.id, and there is no operation to fetch a system by id, so this edge is
+    inferred from the field name plus the sibling hostname field and cannot be traversed by an API call.
+- from: EndpointData
+  to: DeviceData
+  type: has_one
+  via: hostname
+  binding: natural-key
+  confidence: medium
+  note: >-
+    The contract explicitly contrasts the two - /endpoint_data is agent state, /device_data is base
+    inventory regardless of agent installation - and both carry hostname, ip_address and OS. There is
+    no shared id, so joining them is a client-side hostname match. The provider's own MCP examples do
+    exactly this to find devices with no agent online.
+- from: AtRiskSystem
+  to: DeviceData
+  type: has_one
+  via: hostname
+  binding: natural-key
+  confidence: medium
+- from: Detection
+  to: DeviceData
+  type: has_one
+  via: source_host
+  binding: natural-key
+  confidence: low
+  note: >-
+    source_host and destination_host are hostnames, nullable, and nothing in the contract promises
+    they correspond to a registered device.
+external_references:
+- field: Detection.corresponding_ticket
+  target: Jira issue URL
+  note: Opaque external URL; no id, no fetch operation.
+- field: Detection.cleared_from_abakis
+  target: 'internal MDR review system ("Abakis")'
+  note: >-
+    A boolean whose name leaks an internal system. Documented as "whether MDR has reviewed and cleared
+    this detection"; there is no Abakis surface in the public API.
+gaps:
+- No get-by-id operation exists for any entity - every read is a filtered list.
+- >-
+  Joins across collections are by hostname string, not by id, so a rename or a duplicate hostname
+  silently breaks the graph and nothing in the contract warns of it.
+- >-
+  exclusion / at_risk booleans appear on three schemas with the same meaning but no shared component,
+  so an exemption model is implied and never defined.

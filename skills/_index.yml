@@ -1,0 +1,35 @@
+generated: '2026-09-07'
+method: generated
+source: >-
+  openapi/adlumininc-api-openapi-original.yml plus the provider's own published top use cases at
+  https://developer.n-able.com/adlumin/page/examples-of-mcp-server-reporting
+note: >-
+  The Adlumin OpenAPI declares no operationId on any operation, so each skill grounds its steps in
+  method + path (the only stable identifier the contract publishes) and in the MCP tool names read
+  from the provider's own server.py. No operation, parameter or field named in these skills was
+  invented; every one appears verbatim in the contract.
+skills:
+- file: adlumininc-soc-triage.md
+  name: Adlumin daily SOC triage
+  api: openapi/adlumininc-api-openapi-original.yml
+  operations: ['GET /detections', 'POST /acknowledge_detections']
+  mcp_tools: [get_detections, acknowledge_detections]
+  writes: true
+- file: adlumininc-executive-security-briefing.md
+  name: Adlumin executive security briefing
+  api: openapi/adlumininc-api-openapi-original.yml
+  operations: ['GET /complete_endpoint_data', 'GET /network_data', 'GET /firewall', 'GET /detections']
+  mcp_tools: [get_complete_endpoint_data, get_network_data, get_firewall_geo_aggregation, get_detections]
+  writes: false
+- file: adlumininc-ad-hygiene-audit.md
+  name: Adlumin Active Directory hygiene audit
+  api: openapi/adlumininc-api-openapi-original.yml
+  operations: ['GET /at_risk_groups', 'GET /at_risk_shares', 'GET /at_risk_systems', 'GET /compliance_insights']
+  mcp_tools: [get_at_risk_groups, get_at_risk_shares, get_at_risk_systems, get_compliance_insights]
+  writes: false
+- file: adlumininc-endpoint-coverage-gap.md
+  name: Adlumin endpoint coverage gap check
+  api: openapi/adlumininc-api-openapi-original.yml
+  operations: ['GET /device_data', 'GET /endpoint_data', 'GET /complete_endpoint_data']
+  mcp_tools: [get_device_data, get_endpoint_data, get_complete_endpoint_data]
+  writes: false

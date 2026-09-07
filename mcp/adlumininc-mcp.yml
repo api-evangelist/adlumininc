@@ -1,0 +1,80 @@
+generated: '2026-09-07'
+method: searched
+status: published
+source: https://developer.n-able.com/adlumin/page/the-mcp-server-start-guide
+evidence:
+- url: https://developer.n-able.com/adlumin/page/the-mcp-server-start-guide
+  http_status: 200
+  kind: provider setup guide (Claude Desktop / ChatGPT / GitHub Copilot)
+- url: https://s3.us-west-2.amazonaws.com/files.n-able.com/NRCNable/media/Cookbook/mcp+server.zip
+  http_status: 200
+  kind: first-party download (31,648 bytes; contains adlumin-mcp-python/server.py and adlumin_api_swagger.yaml)
+deployment:
+  mode: local-stdio
+  install: python3 /path/to/adlumin-mcp-python/server.py
+  package: https://s3.us-west-2.amazonaws.com/files.n-able.com/NRCNable/media/Cookbook/mcp+server.zip
+  auth: api-key
+  verified: searched
+  note: >-
+    The only publicly obtainable server is the downloadable Python source, run over stdio with
+    ADLUMIN_API_KEY and ADLUMIN_BASE_URL environment variables. The provider's setup guide also
+    describes a hosted remote server reached through `npx mcp-remote https://<ADLUMIN_MCP_SERVER_URL>/mcp`,
+    but the URL is a placeholder the guide tells the reader to obtain from their Adlumin admin — no
+    endpoint is published, so none is recorded here. An agent cannot reach Adlumin over MCP without a
+    human first installing the server or obtaining a tenant endpoint from support.
+server:
+  name: adlumin-api
+  framework: FastMCP (mcp>=1.0.0, httpx>=0.27.0)
+  language: python
+  runtime: Python 3.10+
+  transport: stdio
+  backing_api: https://api.adlumin.com/v1
+  auth:
+    style: bearer
+    env: [ADLUMIN_API_KEY, ADLUMIN_BASE_URL]
+    header: 'Authorization: Bearer <token>'
+clients_documented:
+- Claude Desktop (remote proxy via mcp-remote, or local Python stdio)
+- ChatGPT (Custom GPT Action wrapping the REST endpoints)
+- GitHub Copilot for VS Code
+tools:
+- name: get_detections
+  description: 'List security detections for the tenant, filterable by severity, acknowledgement, MDR workflow status and date window.'
+  rest: 'GET /detections'
+- name: acknowledge_detections
+  description: 'Bulk-acknowledge one or more detections by ID; the response reports acknowledged, not_found and already_acknowledged.'
+  rest: 'POST /acknowledge_detections'
+- name: get_at_risk_groups
+  description: 'List Active Directory groups flagged as at-risk for broad permissions or privileged access.'
+  rest: 'GET /at_risk_groups'
+- name: get_at_risk_shares
+  description: 'List network shares flagged as at-risk for overly permissive access controls.'
+  rest: 'GET /at_risk_shares'
+- name: get_at_risk_systems
+  description: 'List hosts/workstations flagged as at-risk, filterable by OS, domain and exemption state.'
+  rest: 'GET /at_risk_systems'
+- name: get_endpoint_data
+  description: 'List endpoint security agent telemetry (agent version, policy, connectivity) per device.'
+  rest: 'GET /endpoint_data'
+- name: get_complete_endpoint_data
+  description: 'Rolled-up tenant endpoint health summary for dashboards and executive briefings.'
+  rest: 'GET /complete_endpoint_data'
+- name: get_device_data
+  description: 'List base device inventory records regardless of agent installation status.'
+  rest: 'GET /device_data'
+- name: get_network_data
+  description: 'Network health statistics and the 0-100 network health score contributions.'
+  rest: 'GET /network_data'
+- name: get_firewall_events
+  description: 'List raw firewall log events with source/destination IPs, geo data, action taken and UBA risk score.'
+  rest: 'GET /firewall'
+- name: get_firewall_geo_aggregation
+  description: 'Top source and destination countries by firewall event volume.'
+  rest: 'GET /firewall?aggregate=geo'
+- name: get_firewall_blocked_ip_aggregation
+  description: 'Top 15 blocked source IPs by month for blocklisting and IP reputation feeds.'
+  rest: 'GET /firewall?aggregate=blocked_ips'
+- name: get_compliance_insights
+  description: 'Compliance and policy violation metrics - stale accounts, password policy, GPO violations.'
+  rest: 'GET /compliance_insights'
+tool_count: 13

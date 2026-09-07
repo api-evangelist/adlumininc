@@ -1,0 +1,21 @@
+generated: '2026-09-07'
+method: searched
+source: >-
+  https://www.n-able.com/products/adlumin, https://www.n-able.com/pricing (404),
+  https://www.n-able.com/products/adlumin/demo
+plan_count: 0
+plans: []
+model: quote-only
+note: >-
+  Adlumin publishes no priced plans. N-able has no /pricing page at all (HTTP 404) and the Adlumin
+  product pages route every commercial call-to-action to a demo request or a distributor locator
+  rather than a tier list. The product is sold through MSP partners and direct sales on a
+  per-endpoint / per-tenant quote, and the platform is positioned as "one license, one platform"
+  without a public price. There is no free tier and no self-serve signup: portal.adlumin.com is a
+  login for existing tenants, not a registration flow. API access is included with the platform - the
+  reference tells the reader to obtain a Bearer token from their Adlumin platform admin - so there is
+  no separately priced API product to record either.
+evidence:
+- {url: 'https://www.n-able.com/pricing', http_status: 404}
+- {url: 'https://www.n-able.com/products/adlumin', http_status: 200, note: 'served behind a Cloudflare browser check; fetched with a browser user-agent'}
+- {url: 'https://portal.adlumin.com/users/sign_in', http_status: 200, note: 'login only, no signup link'}

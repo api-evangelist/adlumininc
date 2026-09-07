@@ -1,4 +1,4 @@
-# Adlumininc
+# Adlumin
 
 <!-- API-EVANGELIST-PROVENANCE:BEGIN -->
 > ### About this repository
@@ -64,5 +64,16 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Adlumininc is a company surfaced via the API Evangelist harvest backlog (source: secondary-market) and added to the network as a stub for full-pipeline profiling.
-- https://equityzen.com/company/adlumininc
+Adlumin is an N-able company providing a cloud-native security operations platform for mid-market
+organizations, financial institutions, government agencies and managed service providers, combining
+XDR, 24/7 expert-led MDR, SIEM, in-platform SOAR, UEBA, darknet monitoring, ITDR, vulnerability
+management and compliance reporting under one license.
+
+Adlumin publishes an OpenAPI 3.0.3 description of its XDR/MDR v1 REST API (11 operations across
+detections, at-risk assets, endpoint and device telemetry, network health, firewall events and
+compliance insights) and a first-party Python MCP server exposing those endpoints as 13 agent tools.
+
+- Product: https://www.n-able.com/products/adlumin
+- Developer portal: https://developer.n-able.com/adlumin
+- API reference: https://developer.n-able.com/adlumin/reference
+- MCP server: https://developer.n-able.com/adlumin/page/the-mcp-server-start-guide

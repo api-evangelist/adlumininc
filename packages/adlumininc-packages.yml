@@ -1,0 +1,41 @@
+generated: '2026-09-07'
+method: searched
+source: >-
+  npm registry search, PyPI, RubyGems, crates.io, NuGet and Packagist queried for "adlumin";
+  github.com/Adlumin org listing; developer.n-able.com/adlumin download links
+registries_searched:
+- {registry: npm, query: adlumin, results: 0}
+- {registry: pypi, query: 'adlumin, adlumin-mcp, adlumin-api, adlumin-sdk', results: 0}
+- {registry: rubygems, query: adlumin, results: 0}
+- {registry: crates.io, query: adlumin, results: 0}
+- {registry: nuget, query: adlumin, results: 0}
+- {registry: packagist, query: adlumin, results: 0}
+- {registry: github, query: 'org:Adlumin', results: 0, note: 'github.com/Adlumin exists (org id 158312161) but publishes no public repositories'}
+packages:
+- language: python
+  registry: direct-download
+  name: adlumin-mcp-python
+  url: https://s3.us-west-2.amazonaws.com/files.n-able.com/NRCNable/media/Cookbook/mcp+server.zip
+  install: unzip 'mcp+server.zip' && pip install -r adlumin-mcp-python/requirements.txt
+  official: true
+  version: null
+  published: null
+  note: >-
+    First-party Adlumin MCP server, distributed as a ZIP from N-able's S3 bucket rather than through
+    any package registry. The URL is unpinned and floats to whatever build is current, so a consumer
+    cannot tell which version they are getting and neither can this record - hence version: null.
+    The archive's own file timestamps read 2026-05-26 (server.py) and 2026-06-10 (bundle assembled),
+    and the bundled adlumin_api_swagger.yaml is dated 2026-06-10; those are mtimes inside the zip,
+    not published release metadata. Dependencies declared - mcp>=1.0.0 and httpx>=0.27.0.
+  dependencies: ['mcp>=1.0.0', 'httpx>=0.27.0']
+  contents:
+  - adlumin-mcp-python/server.py
+  - adlumin-mcp-python/requirements.txt
+  - adlumin_api_swagger.yaml
+findings:
+  official_sdk_count: 0
+  note: >-
+    Adlumin publishes no client SDK on any public package registry in any language, and its GitHub
+    org is empty. The only first-party distributable is the MCP server above, which is an agent
+    integration rather than a client library, so no SDKs pointer is emitted. A consumer integrating
+    with the REST API writes their own HTTP client against the OpenAPI.

@@ -1,0 +1,63 @@
+generated: '2026-09-07'
+method: searched
+source: https://developer.n-able.com/adlumin/docs/getting-started
+docs:
+- https://status.n-able.com/release-notes/
+- https://adlumin.document360.io/docs/release-notes
+scheme: dated-entries
+current_version: v1 (API), 1.0.0 (OpenAPI info.version)
+window: >-
+  The developer portal states it keeps only the last two months of notes and points further history at
+  the N-able release-notes page and the Adlumin user manual. The entries below are that published
+  window, captured 2026-09-07. Each entry links into adlumin.document360.io, which 302s to its tenant
+  root for an anonymous reader, so the link targets are gated even though the dated summaries are not.
+api_specific: false
+note: >-
+  This is a product changelog, not an API changelog. None of the entries below describes a change to
+  the eleven v1 REST operations; they cover detections, SOAR actions, log parsing, ticket
+  synchronisation and tenant management. No versioned API changelog is published.
+entries:
+- date: '2026-08-18'
+  breaking: false
+  highlights:
+  - Google Workspace SOAR actions in Custom Detections
+  - Bug fixes
+- date: '2026-08-12'
+  breaking: false
+  highlights: [Bug fixes]
+- date: '2026-08-06'
+  breaking: false
+  highlights:
+  - Improved routing for integration and log support requests
+  - Bug fixes
+- date: '2026-08-04'
+  breaking: false
+  highlights:
+  - Adaptive Brute Force Protection for Windows event 4625
+  - Bug fixes
+- date: '2026-08-03'
+  breaking: false
+  highlights: [Bug fixes]
+- date: '2026-07-22'
+  breaking: false
+  highlights: [Bug fixes]
+- date: '2026-07-15'
+  breaking: false
+  highlights:
+  - Enhanced date and time format metadata
+  - Improved source IP address extraction for SonicWall logs
+  - Improved Autotask and Jira ticket status synchronization
+  - Bug fixes
+- date: '2026-07-10'
+  breaking: false
+  highlights: [Self-service tenant creation]
+- date: '2026-06-23'
+  breaking: false
+  highlights:
+  - Call Directory for priority contact management and alert routing
+  - Bug fixes
+- date: '2026-06-18'
+  breaking: false
+  highlights:
+  - Clear, context-aware SOC case summaries
+  - Bug fixes

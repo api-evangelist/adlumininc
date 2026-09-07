@@ -1,0 +1,143 @@
+generated: '2026-09-07'
+method: probed
+source: live GET of each named /.well-known/ path on every host this record knows
+note: >-
+  adlumin.com and www.adlumin.com serve no discovery documents of their own — every path 301s to
+  N-able, which has operated Adlumin since the November 2024 acquisition. The two real documents in
+  this set are therefore served on N-able hosts: the RFC 9727 API catalog on the Adlumin developer
+  portal host (developer.n-able.com), whose linkset names https://developer.n-able.com/adlumin as an
+  anchor, and the RFC 9116 security.txt on the corporate host (www.n-able.com). api.adlumin.com is a
+  live AWS API Gateway that answers every unmatched path with HTTP 403
+  "Missing Authentication Token", so no /.well-known/ document is reachable there anonymously.
+path_echo_control: passed
+hosts:
+- host: https://adlumin.com
+  documents:
+  - {path: /.well-known/security.txt, status: 301}
+  - {path: /.well-known/openid-configuration, status: 301}
+  - {path: /.well-known/oauth-authorization-server, status: 301}
+  - {path: /.well-known/oauth-protected-resource, status: 301}
+  - {path: /.well-known/api-catalog, status: 301}
+  - {path: /.well-known/ai-plugin.json, status: 301}
+  - {path: /.well-known/apis.json, status: 301}
+  - {path: /apis.json, status: 301}
+  - {path: /apis.yml, status: 301}
+  - {path: /.well-known/aauth-resource.json, status: 301}
+  - {path: /.well-known/agent-card.json, status: 301}
+  - {path: /.well-known/agent.json, status: 301}
+  - {path: /.well-known/adlumininc-negative-control-7f3ab91c.json, status: 301}
+- host: https://www.adlumin.com
+  documents:
+  - {path: /.well-known/security.txt, status: 301}
+  - {path: /.well-known/openid-configuration, status: 301}
+  - {path: /.well-known/oauth-authorization-server, status: 301}
+  - {path: /.well-known/oauth-protected-resource, status: 301}
+  - {path: /.well-known/api-catalog, status: 301}
+  - {path: /.well-known/ai-plugin.json, status: 301}
+  - {path: /.well-known/apis.json, status: 301}
+  - {path: /apis.json, status: 301}
+  - {path: /apis.yml, status: 301}
+  - {path: /.well-known/aauth-resource.json, status: 301}
+  - {path: /.well-known/agent-card.json, status: 301}
+  - {path: /.well-known/agent.json, status: 301}
+  - {path: /.well-known/adlumininc-negative-control-7f3ab91c.json, status: 301}
+- host: https://api.adlumin.com
+  note: AWS API Gateway; every unmatched path returns 403 MissingAuthenticationTokenException
+  documents:
+  - {path: /.well-known/security.txt, status: 403}
+  - {path: /.well-known/openid-configuration, status: 403}
+  - {path: /.well-known/oauth-authorization-server, status: 403}
+  - {path: /.well-known/oauth-protected-resource, status: 403}
+  - {path: /.well-known/api-catalog, status: 403}
+  - {path: /.well-known/ai-plugin.json, status: 403}
+  - {path: /.well-known/apis.json, status: 403}
+  - {path: /apis.json, status: 403}
+  - {path: /apis.yml, status: 403}
+  - {path: /.well-known/aauth-resource.json, status: 403}
+  - {path: /.well-known/agent-card.json, status: 403}
+  - {path: /.well-known/agent.json, status: 403}
+  - {path: /.well-known/adlumininc-negative-control-7f3ab91c.json, status: 403}
+- host: https://portal.adlumin.com
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/apis.json, status: 404}
+  - {path: /apis.json, status: 404}
+  - {path: /apis.yml, status: 404}
+  - {path: /.well-known/aauth-resource.json, status: 404}
+  - {path: /.well-known/agent-card.json, status: 404}
+  - {path: /.well-known/agent.json, status: 404}
+  - {path: /.well-known/adlumininc-negative-control-7f3ab91c.json, status: 404}
+- host: https://developer.n-able.com
+  note: Adlumin developer portal host (ReadMe); the api-catalog linkset anchors on /adlumin
+  documents:
+  - {path: /.well-known/api-catalog, status: 200, file: adlumininc-api-catalog.json}
+  - {path: /.well-known/security.txt, status: 302}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 302}
+  - {path: /.well-known/apis.json, status: 302}
+  - {path: /apis.json, status: 302}
+  - {path: /apis.yml, status: 302}
+  - {path: /.well-known/aauth-resource.json, status: 302}
+  - {path: /.well-known/agent-card.json, status: 302}
+  - {path: /.well-known/agent.json, status: 302}
+  - {path: /.well-known/adlumininc-negative-control-7f3ab91c.json, status: 302}
+- host: https://www.n-able.com
+  note: corporate host of Adlumin's parent; serves the RFC 9116 security.txt that governs Adlumin
+  documents:
+  - {path: /.well-known/security.txt, status: 200, file: adlumininc-security.txt}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/apis.json, status: 404}
+  - {path: /apis.json, status: 403}
+  - {path: /apis.yml, status: 403}
+  - {path: /.well-known/aauth-resource.json, status: 404}
+  - {path: /.well-known/agent-card.json, status: 404}
+  - {path: /.well-known/agent.json, status: 404}
+  - {path: /.well-known/adlumininc-negative-control-7f3ab91c.json, status: 404}
+- host: https://adlumin.document360.io
+  note: Adlumin user manual (Document360); every path 302s to the tenant root
+  documents:
+  - {path: /.well-known/security.txt, status: 302}
+  - {path: /.well-known/openid-configuration, status: 302}
+  - {path: /.well-known/oauth-authorization-server, status: 302}
+  - {path: /.well-known/oauth-protected-resource, status: 302}
+  - {path: /.well-known/api-catalog, status: 302}
+  - {path: /.well-known/ai-plugin.json, status: 302}
+  - {path: /.well-known/apis.json, status: 302}
+  - {path: /apis.json, status: 302}
+  - {path: /apis.yml, status: 302}
+  - {path: /.well-known/aauth-resource.json, status: 302}
+  - {path: /.well-known/agent-card.json, status: 302}
+  - {path: /.well-known/agent.json, status: 302}
+  - {path: /.well-known/adlumininc-negative-control-7f3ab91c.json, status: 302}
+findings:
+  api_catalog:
+    served: true
+    host: developer.n-able.com
+    media_type: application/linkset+json
+    rfc: RFC 9727
+    anchors_adlumin: true
+    file: adlumininc-api-catalog.json
+  security_txt:
+    served: true
+    host: www.n-able.com
+    rfc: RFC 9116
+    expired: true
+    expires: '2024-06-29T00:00:00.000Z'
+    note: >-
+      The document is served and parses, but its Expires field lapsed on 2024-06-29 — under RFC 9116
+      section 2.5.5 an expired security.txt should not be relied upon. Refreshing it is a one-line fix.
+    file: adlumininc-security.txt
+  agent_card: {served: false, note: no /.well-known/agent-card.json or /.well-known/agent.json on any host}
+  aauth_resource: {served: false}
+  apis_json: {served: false}
