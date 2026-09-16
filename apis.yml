@@ -32,48 +32,15 @@ tags:
 - MCP
 - agent-native
 apis:
-- name: Adlumin XDR/MDR API
-  description: >-
-    Tenant-scoped REST API over the Adlumin security operations platform. Eleven v1 endpoints return
-    security detections (with bulk acknowledgement), at-risk Active Directory groups, network shares
-    and systems, endpoint agent telemetry and device inventory, network health statistics, firewall
-    event logs with geographic and blocked-IP aggregations, and compliance insights. Bearer JWT auth,
-    page/per_page pagination with total_count, and since/until ISO 8601 date filtering.
-  image: https://files.readme.io/c620a71e287577ffddb7a699ae4af380b1058444317a4e596f65ceacddea83f4-logo-light.svg
-  humanURL: https://developer.n-able.com/adlumin/reference
-  baseURL: https://api.adlumin.com/v1
-  tags:
-  - Security
-  - Cybersecurity
-  - Threat Detection
-  - Endpoint Security
-  - Compliance
-  - SIEM
-  properties:
-  - type: OpenAPI
-    url: openapi/adlumininc-api-openapi-original.yml
-  - type: Documentation
-    url: https://developer.n-able.com/adlumin/docs/getting-started
-  - type: APIReference
-    url: https://developer.n-able.com/adlumin/reference
-  - type: Authentication
-    url: authentication/adlumininc-authentication.yml
-  - type: Conventions
-    url: conventions/adlumininc-conventions.yml
-  - type: ErrorCatalog
-    url: errors/adlumininc-problem-types.yml
-  - type: DataModel
-    url: data-model/adlumininc-data-model.yml
-  - type: Overlay
-    url: overlays/adlumininc-api-overlay.yaml
 - name: Adlumin MCP Server
   description: >-
     First-party Model Context Protocol server distributed by N-able as a downloadable Python package.
-    Wraps the eleven Adlumin v1 REST endpoints as thirteen MCP tools (including two firewall
-    aggregation tools with no dedicated REST path) so Claude Desktop, ChatGPT and GitHub Copilot can
-    run SOC triage, executive briefings, Active Directory hygiene audits and compliance reporting
-    against live tenant data.
-  image: https://files.readme.io/c620a71e287577ffddb7a699ae4af380b1058444317a4e596f65ceacddea83f4-logo-light.svg
+    Wraps the eleven Adlumin v1 REST endpoints as thirteen MCP tools (including two firewall aggregation
+    tools with no dedicated REST path) so Claude Desktop, ChatGPT and GitHub Copilot can run SOC triage,
+    executive briefings, Active Directory hygiene audits and compliance reporting against live tenant
+    data.
+  image: >-
+    https://files.readme.io/c620a71e287577ffddb7a699ae4af380b1058444317a4e596f65ceacddea83f4-logo-light.svg
   humanURL: https://developer.n-able.com/adlumin/page/the-mcp-server-start-guide
   baseURL: https://api.adlumin.com/v1
   tags:
@@ -87,6 +54,138 @@ apis:
     url: mcp/adlumininc-tool-crosswalk.yml
   - type: Documentation
     url: https://developer.n-able.com/adlumin/page/the-mcp-server-start-guide
+- aid: adlumininc:adlumininc-at-risk-assets-api
+  name: Adlumin At-Risk Assets API
+  description: Hosts, groups, and shares flagged as at-risk
+  humanURL: https://developer.n-able.com/adlumin/reference
+  baseURL: https://api.adlumin.com/v1
+  tags:
+  - At-Risk Assets
+  properties:
+  - type: OpenAPI
+    url: openapi/adlumininc-at-risk-assets-api-openapi.yml
+  - type: Documentation
+    url: https://developer.n-able.com/adlumin/docs/getting-started
+  - type: APIReference
+    url: https://developer.n-able.com/adlumin/reference
+  - type: Authentication
+    url: authentication/adlumininc-authentication.yml
+  - type: Conventions
+    url: conventions/adlumininc-conventions.yml
+  - type: ErrorCatalog
+    url: errors/adlumininc-problem-types.yml
+  - type: DataModel
+    url: data-model/adlumininc-data-model.yml
+- aid: adlumininc:adlumininc-compliance-api
+  name: Adlumin Compliance API
+  description: Compliance and policy insights
+  humanURL: https://developer.n-able.com/adlumin/reference
+  baseURL: https://api.adlumin.com/v1
+  tags:
+  - Compliance
+  properties:
+  - type: OpenAPI
+    url: openapi/adlumininc-compliance-api-openapi.yml
+  - type: Documentation
+    url: https://developer.n-able.com/adlumin/docs/getting-started
+  - type: APIReference
+    url: https://developer.n-able.com/adlumin/reference
+  - type: Authentication
+    url: authentication/adlumininc-authentication.yml
+  - type: Conventions
+    url: conventions/adlumininc-conventions.yml
+  - type: ErrorCatalog
+    url: errors/adlumininc-problem-types.yml
+  - type: DataModel
+    url: data-model/adlumininc-data-model.yml
+- aid: adlumininc:adlumininc-detections-api
+  name: Adlumin Detections API
+  description: Security detection events and acknowledgement
+  humanURL: https://developer.n-able.com/adlumin/reference
+  baseURL: https://api.adlumin.com/v1
+  tags:
+  - Detections
+  properties:
+  - type: OpenAPI
+    url: openapi/adlumininc-detections-api-openapi.yml
+  - type: Documentation
+    url: https://developer.n-able.com/adlumin/docs/getting-started
+  - type: APIReference
+    url: https://developer.n-able.com/adlumin/reference
+  - type: Authentication
+    url: authentication/adlumininc-authentication.yml
+  - type: Conventions
+    url: conventions/adlumininc-conventions.yml
+  - type: ErrorCatalog
+    url: errors/adlumininc-problem-types.yml
+  - type: DataModel
+    url: data-model/adlumininc-data-model.yml
+- aid: adlumininc:adlumininc-endpoint-api
+  name: Adlumin Endpoint API
+  description: Endpoint agent and device telemetry
+  humanURL: https://developer.n-able.com/adlumin/reference
+  baseURL: https://api.adlumin.com/v1
+  tags:
+  - Endpoint
+  properties:
+  - type: OpenAPI
+    url: openapi/adlumininc-endpoint-api-openapi.yml
+  - type: Documentation
+    url: https://developer.n-able.com/adlumin/docs/getting-started
+  - type: APIReference
+    url: https://developer.n-able.com/adlumin/reference
+  - type: Authentication
+    url: authentication/adlumininc-authentication.yml
+  - type: Conventions
+    url: conventions/adlumininc-conventions.yml
+  - type: ErrorCatalog
+    url: errors/adlumininc-problem-types.yml
+  - type: DataModel
+    url: data-model/adlumininc-data-model.yml
+- aid: adlumininc:adlumininc-firewall-api
+  name: Adlumin Firewall API
+  description: Firewall event logs
+  humanURL: https://developer.n-able.com/adlumin/reference
+  baseURL: https://api.adlumin.com/v1
+  tags:
+  - Firewall
+  properties:
+  - type: OpenAPI
+    url: openapi/adlumininc-firewall-api-openapi.yml
+  - type: Documentation
+    url: https://developer.n-able.com/adlumin/docs/getting-started
+  - type: APIReference
+    url: https://developer.n-able.com/adlumin/reference
+  - type: Authentication
+    url: authentication/adlumininc-authentication.yml
+  - type: Conventions
+    url: conventions/adlumininc-conventions.yml
+  - type: ErrorCatalog
+    url: errors/adlumininc-problem-types.yml
+  - type: DataModel
+    url: data-model/adlumininc-data-model.yml
+- aid: adlumininc:adlumininc-network-api
+  name: Adlumin Network API
+  description: Network health and traffic data
+  humanURL: https://developer.n-able.com/adlumin/reference
+  baseURL: https://api.adlumin.com/v1
+  tags:
+  - Network
+  properties:
+  - type: OpenAPI
+    url: openapi/adlumininc-network-api-openapi.yml
+  - type: Documentation
+    url: https://developer.n-able.com/adlumin/docs/getting-started
+  - type: APIReference
+    url: https://developer.n-able.com/adlumin/reference
+  - type: Authentication
+    url: authentication/adlumininc-authentication.yml
+  - type: Conventions
+    url: conventions/adlumininc-conventions.yml
+  - type: ErrorCatalog
+    url: errors/adlumininc-problem-types.yml
+  - type: DataModel
+    url: data-model/adlumininc-data-model.yml
 common:
 - type: AgenticAccess
   url: agentic-access/adlumininc-agentic-access.yml
