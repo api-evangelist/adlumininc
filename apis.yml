@@ -18,6 +18,9 @@ specificationVersion: '0.20'
 created: '2026-09-07'
 modified: '2026-09-07'
 position: Producing
+x-docs-platform: readme
+x-docs-platform-confidence: high
+x-docs-platform-checked: 2026-09-17
 tags:
 - Security
 - Cybersecurity
@@ -125,7 +128,8 @@ apis:
   description: Endpoint agent and device telemetry
   humanURL: https://developer.n-able.com/adlumin/reference
   baseURL: https://api.adlumin.com/v1
-  tags:
+  tags: []
+  tags_raw:
   - Endpoint
   properties:
   - type: OpenAPI
@@ -170,6 +174,8 @@ apis:
   humanURL: https://developer.n-able.com/adlumin/reference
   baseURL: https://api.adlumin.com/v1
   tags:
+  - Networks
+  tags_raw:
   - Network
   properties:
   - type: OpenAPI
