@@ -1,0 +1,360 @@
+openapi: 3.2.0
+info:
+  title: Adlumin XDR/MDR Detections API
+  description: 'The Adlumin API provides programmatic access to your organization''s security data,
+
+    including detections, at-risk assets, endpoint telemetry, network health, firewall
+
+    events, and compliance insights.'
+  version: 1.0.0
+  contact:
+    name: Adlumin Support
+    url: https://www.adlumin.com
+servers:
+- url: https://api.adlumin.com/v1
+  description: Production
+security:
+- BearerAuth: []
+tags:
+- name: Detections
+  description: Security detection events and acknowledgement
+paths:
+  /detections:
+    get:
+      tags:
+      - Detections
+      summary: List detections
+      description: 'Returns a paginated list of security detections for the authenticated tenant.
+
+        Results can be filtered by severity, date range, acknowledgement status, and
+
+        free-text search. Default sort is newest-first by `event_time`.'
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - $ref: '#/components/parameters/Since'
+      - $ref: '#/components/parameters/Until'
+      - $ref: '#/components/parameters/Search'
+      - $ref: '#/components/parameters/SortColumn'
+      - $ref: '#/components/parameters/SortDir'
+      - name: severity
+        in: query
+        description: Filter by one or more severity levels (comma-separated)
+        schema:
+          type: string
+          example: Critical,High
+      - name: acknowledged
+        in: query
+        description: Filter by acknowledgement status
+        schema:
+          type: boolean
+      - name: status
+        in: query
+        description: Filter by MDR workflow status
+        schema:
+          type: string
+          enum:
+          - Incident Declared
+          - Request Customer Review
+          - In Progress
+          - Received By MDR
+          - Escalated
+          - Rejected
+      responses:
+        '200':
+          description: Paginated list of detections
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Detection'
+              example:
+                total_count: 142
+                page: 1
+                per_page: 25
+                data:
+                - id: det_8a2f1c
+                  severity: Critical
+                  acknowledged: false
+                  detection_type: Lateral Movement
+                  event_time: '2026-05-20T14:32:00Z'
+                  source_host: WORKSTATION-01
+                  destination_host: DC-01
+                  account_used: jdoe
+                  information: SMB lateral movement detected between endpoints
+                  status: Received By MDR
+                  created_at: '2026-05-20T14:33:10Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+      operationId: getDetections
+      x-operation-id-source: derived
+  /acknowledge_detections:
+    post:
+      tags:
+      - Detections
+      summary: Acknowledge detections
+      description: 'Marks one or more detections as acknowledged, removing them from the active
+
+        dashboard view. An acknowledged detection is not deleted — it remains available
+
+        via the `/detections` endpoint with `acknowledged=true`.
+
+
+        Pass an array of detection IDs to bulk-acknowledge. The response confirms
+
+        which IDs were updated and which (if any) were not found or already acknowledged.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - detection_ids
+              properties:
+                detection_ids:
+                  type: array
+                  description: One or more detection IDs to acknowledge
+                  minItems: 1
+                  items:
+                    type: string
+                  example:
+                  - det_8a2f1c
+                  - det_9b3d2e
+                acknowledged_by:
+                  type: string
+                  description: Username performing the acknowledgement (defaults to authenticated user)
+                  example: analyst@company.com
+                suppress_dashboard:
+                  type: boolean
+                  description: Also suppress the detections from the MDR dashboard view
+                  default: false
+            example:
+              detection_ids:
+              - det_8a2f1c
+              - det_9b3d2e
+              acknowledged_by: analyst@company.com
+              suppress_dashboard: false
+      responses:
+        '200':
+          description: Acknowledgement result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  acknowledged:
+                    type: array
+                    description: IDs that were successfully acknowledged
+                    items:
+                      type: string
+                  not_found:
+                    type: array
+                    description: IDs that could not be located
+                    items:
+                      type: string
+                  already_acknowledged:
+                    type: array
+                    description: IDs that were already in an acknowledged state
+                    items:
+                      type: string
+              example:
+                acknowledged:
+                - det_8a2f1c
+                - det_9b3d2e
+                not_found: []
+                already_acknowledged: []
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: postAcknowledgeDetections
+      x-operation-id-source: derived
+components:
+  parameters:
+    Search:
+      name: search
+      in: query
+      description: Free-text search term applied across key fields
+      schema:
+        type: string
+    SortColumn:
+      name: sort_column
+      in: query
+      description: Field name to sort by
+      schema:
+        type: string
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of records per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
+    SortDir:
+      name: sort_dir
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
+  responses:
+    BadRequest:
+      description: Request body or parameters are malformed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: bad_request
+            message: detection_ids must be a non-empty array
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
+    UnprocessableEntity:
+      description: Request is valid but cannot be processed due to business logic constraints
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unprocessable_entity
+            message: 'Invalid date range: ''since'' must be before ''until'''
+  schemas:
+    Detection:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique detection identifier
+        severity:
+          type: string
+          enum:
+          - Critical
+          - High
+          - Medium
+          - Low
+          - Informational
+        acknowledged:
+          type: boolean
+          description: Whether the detection has been acknowledged by an analyst
+        acknowledged_by:
+          type:
+          - string
+          - 'null'
+          description: Username who acknowledged the detection
+        dashboard_suppression:
+          type: boolean
+          description: Whether the detection is suppressed from the MDR dashboard
+        detection_type:
+          type: string
+          description: Classification label for the detection (e.g., "Lateral Movement")
+        event_time:
+          type: string
+          format: date-time
+          description: Timestamp when the underlying event occurred
+        source_host:
+          type:
+          - string
+          - 'null'
+          description: Source hostname
+        destination_host:
+          type:
+          - string
+          - 'null'
+          description: Destination hostname
+        account_used:
+          type:
+          - string
+          - 'null'
+          description: Account name associated with the event
+        information:
+          type: string
+          description: Human-readable description of the detection
+        status:
+          type: string
+          enum:
+          - Incident Declared
+          - Request Customer Review
+          - In Progress
+          - Received By MDR
+          - Escalated
+          - Rejected
+          description: MDR workflow status
+        corresponding_ticket:
+          type:
+          - string
+          - 'null'
+          description: URL to the linked Jira ticket, if any
+        cleared_from_abakis:
+          type: boolean
+          description: Whether MDR has reviewed and cleared this detection
+        created_at:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    PaginatedResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of records matching the query
+        page:
+          type: integer
+        per_page:
+          type: integer
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by the Adlumin authentication service. Pass in the Authorization header as `Bearer <token>`.

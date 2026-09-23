@@ -1,0 +1,370 @@
+openapi: 3.2.0
+info:
+  title: Adlumin XDR/MDR At-Risk Assets API
+  description: 'The Adlumin API provides programmatic access to your organization''s security data,
+
+    including detections, at-risk assets, endpoint telemetry, network health, firewall
+
+    events, and compliance insights.'
+  version: 1.0.0
+  contact:
+    name: Adlumin Support
+    url: https://www.adlumin.com
+servers:
+- url: https://api.adlumin.com/v1
+  description: Production
+security:
+- BearerAuth: []
+tags:
+- name: At-Risk Assets
+  description: Hosts, groups, and shares flagged as at-risk
+paths:
+  /at_risk_groups:
+    get:
+      tags:
+      - At-Risk Assets
+      summary: List at-risk Active Directory groups
+      description: 'Returns Active Directory groups flagged as at-risk due to overly broad
+
+        permissions, privileged access, or policy violations. Results exclude
+
+        groups that have been granted a full risk exemption.
+
+
+        Use the `type` parameter to switch between active at-risk groups and
+
+        groups currently in an exempted state.'
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - $ref: '#/components/parameters/Search'
+      - $ref: '#/components/parameters/SortColumn'
+      - $ref: '#/components/parameters/SortDir'
+      - name: type
+        in: query
+        description: Result set to return
+        schema:
+          type: string
+          enum:
+          - risky_groups
+          - risky_exemptions
+          default: risky_groups
+      - name: privileged
+        in: query
+        description: Filter to privileged groups only
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Paginated list of at-risk groups
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AtRiskGroup'
+              example:
+                total_count: 8
+                page: 1
+                per_page: 25
+                data:
+                - id: grp_4c7a9f
+                  group_name: Domain Admins
+                  domain: corp.example.com
+                  privileged: true
+                  at_risk: true
+                  exclusion: false
+                  account_members_count: 12
+                  computer_members_count: 0
+                  group_members_count: 2
+                  group_member_of_count: 1
+                  note: ''
+                  is_domain_group: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAtRiskGroups
+      x-operation-id-source: derived
+  /at_risk_shares:
+    get:
+      tags:
+      - At-Risk Assets
+      summary: List at-risk network shares
+      description: 'Returns network shares that have been identified as at-risk due to
+
+        overly permissive access controls (e.g., world-readable or writable shares,
+
+        shares accessible to privileged groups). Excludes shares with active exemptions.'
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - $ref: '#/components/parameters/Search'
+      - $ref: '#/components/parameters/SortColumn'
+      - $ref: '#/components/parameters/SortDir'
+      - name: type
+        in: query
+        description: Result set to return
+        schema:
+          type: string
+          enum:
+          - risky_shares
+          - risky_exemptions
+          default: risky_shares
+      responses:
+        '200':
+          description: Paginated list of at-risk network shares
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AtRiskShare'
+              example:
+                total_count: 3
+                page: 1
+                per_page: 25
+                data:
+                - id: shr_1d9e2b
+                  share_name: Finance$
+                  share_path: \\FILESERVER-01\Finance$
+                  host_id: hst_7f3c1a
+                  hostname: FILESERVER-01
+                  at_risk: true
+                  exclusion: false
+                  note: Open read access detected
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAtRiskShares
+      x-operation-id-source: derived
+  /at_risk_systems:
+    get:
+      tags:
+      - At-Risk Assets
+      summary: List at-risk systems (hosts)
+      description: 'Returns hosts/workstations flagged as at-risk. A system may be at-risk due
+
+        to misconfiguration, stale patches, privileged account exposure, or anomalous
+
+        activity. Results support filtering by operating system, domain, and exemption state.'
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - $ref: '#/components/parameters/Search'
+      - $ref: '#/components/parameters/SortColumn'
+      - $ref: '#/components/parameters/SortDir'
+      - name: type
+        in: query
+        description: Result set to return
+        schema:
+          type: string
+          enum:
+          - risky_systems
+          - risky_exemptions
+          default: risky_systems
+      - name: operating_system
+        in: query
+        description: Filter by OS string (partial match)
+        schema:
+          type: string
+          example: Windows Server
+      - name: domain
+        in: query
+        description: Filter by domain name
+        schema:
+          type: string
+          example: corp.example.com
+      responses:
+        '200':
+          description: Paginated list of at-risk systems
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AtRiskSystem'
+              example:
+                total_count: 15
+                page: 1
+                per_page: 25
+                data:
+                - id: hst_7f3c1a
+                  hostname: WORKSTATION-22
+                  ip_address: 10.0.1.55
+                  operating_system: Windows 11 Pro
+                  domain: corp.example.com
+                  mac_address: AA:BB:CC:DD:EE:FF
+                  at_risk: true
+                  exclusion: false
+                  note: ''
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAtRiskSystems
+      x-operation-id-source: derived
+components:
+  parameters:
+    Search:
+      name: search
+      in: query
+      description: Free-text search term applied across key fields
+      schema:
+        type: string
+    SortColumn:
+      name: sort_column
+      in: query
+      description: Field name to sort by
+      schema:
+        type: string
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of records per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    SortDir:
+      name: sort_dir
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+  schemas:
+    AtRiskSystem:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        ip_address:
+          type: string
+          format: ipv4
+        operating_system:
+          type: string
+        domain:
+          type: string
+        mac_address:
+          type: string
+        at_risk:
+          type: boolean
+        exclusion:
+          type: boolean
+        note:
+          type:
+          - string
+          - 'null'
+    AtRiskGroup:
+      type: object
+      properties:
+        id:
+          type: string
+        group_name:
+          type: string
+        domain:
+          type: string
+        privileged:
+          type: boolean
+          description: Group has privileged access rights
+        at_risk:
+          type: boolean
+        exclusion:
+          type: boolean
+          description: Group has been granted a full risk exemption
+        account_members_count:
+          type: integer
+        computer_members_count:
+          type: integer
+        group_members_count:
+          type: integer
+        group_member_of_count:
+          type: integer
+          description: Number of parent groups this group belongs to
+        note:
+          type:
+          - string
+          - 'null'
+        is_domain_group:
+          type: boolean
+          description: True for domain groups; false for local groups
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    PaginatedResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of records matching the query
+        page:
+          type: integer
+        per_page:
+          type: integer
+    AtRiskShare:
+      type: object
+      properties:
+        id:
+          type: string
+        share_name:
+          type: string
+        share_path:
+          type: string
+          description: UNC path to the share
+        host_id:
+          type: string
+        hostname:
+          type: string
+        at_risk:
+          type: boolean
+        exclusion:
+          type: boolean
+        note:
+          type:
+          - string
+          - 'null'
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by the Adlumin authentication service. Pass in the Authorization header as `Bearer <token>`.

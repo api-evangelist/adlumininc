@@ -1,0 +1,413 @@
+openapi: 3.2.0
+info:
+  title: Adlumin XDR/MDR Endpoint API
+  description: 'The Adlumin API provides programmatic access to your organization''s security data,
+
+    including detections, at-risk assets, endpoint telemetry, network health, firewall
+
+    events, and compliance insights.'
+  version: 1.0.0
+  contact:
+    name: Adlumin Support
+    url: https://www.adlumin.com
+servers:
+- url: https://api.adlumin.com/v1
+  description: Production
+security:
+- BearerAuth: []
+tags:
+- name: Endpoint
+  description: Endpoint agent and device telemetry
+paths:
+  /endpoint_data:
+    get:
+      tags:
+      - Endpoint
+      summary: List endpoint agent data
+      description: 'Returns endpoint security agent telemetry for devices managed under the
+
+        authenticated tenant. Each record reflects the last-known state reported
+
+        by the installed agent (Sentinel One, Carbon Black, etc.), including agent
+
+        version, policy, and connectivity status.'
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - $ref: '#/components/parameters/Since'
+      - $ref: '#/components/parameters/Until'
+      - $ref: '#/components/parameters/Search'
+      - name: agent_type
+        in: query
+        description: Filter by endpoint agent product
+        schema:
+          type: string
+          enum:
+          - sentinel_one
+          - carbon_black
+          - crowdstrike
+          - defender
+      - name: online
+        in: query
+        description: Filter by agent connectivity status
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Paginated list of endpoint agent records
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/EndpointData'
+              example:
+                total_count: 200
+                page: 1
+                per_page: 25
+                data:
+                - id: ep_2c5f8d
+                  hostname: LAPTOP-45
+                  ip_address: 10.0.2.14
+                  agent_type: sentinel_one
+                  agent_version: 22.3.1.184
+                  policy_name: Default Policy
+                  online: true
+                  last_seen: '2026-05-26T08:10:00Z'
+                  os: Windows 11 Pro
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getEndpointData
+      x-operation-id-source: derived
+  /complete_endpoint_data:
+    get:
+      tags:
+      - Endpoint
+      summary: Get aggregated endpoint summary
+      description: 'Returns a comprehensive rolled-up summary of endpoint health across the
+
+        tenant, combining at-risk counts, sensor health metrics, compliance posture,
+
+        and network health in a single response. Ideal for dashboard widgets and
+
+        executive summaries.'
+      parameters:
+      - $ref: '#/components/parameters/Since'
+      - $ref: '#/components/parameters/Until'
+      responses:
+        '200':
+          description: Aggregated endpoint summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteEndpointData'
+              example:
+                tenant_id: tenant_acme
+                generated_at: '2026-05-26T09:00:00Z'
+                at_risk_objects:
+                  at_risk_systems_count: 15
+                  at_risk_shares_count: 3
+                  at_risk_groups_count: 8
+                stale_sensors_data:
+                  host_count: 200
+                  stale_sensors_count: 12
+                compliance_insights_data:
+                  stale_accounts_count: 5
+                  password_never_expire_count: 22
+                  password_reversible_encryption_count: 1
+                  stale_passwords_count: 9
+                  gpo_violations_count: 4
+                network_health_data:
+                  network_health_score: 74
+                  stats:
+                  - field: Unacknowledged Detections
+                    value: 3
+                  - field: Privileged Domain Accounts
+                    value: 18
+                service_enablement_data:
+                  sentinel_one_enabled: true
+                  mdr_enabled: true
+                  siem_enabled: false
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getCompleteEndpointData
+      x-operation-id-source: derived
+  /device_data:
+    get:
+      tags:
+      - Endpoint
+      summary: List registered devices
+      description: 'Returns inventory-level device records for all hosts registered with the
+
+        tenant. Unlike `/endpoint_data` (which reflects agent state), this endpoint
+
+        returns the base device inventory including MAC address, OS, and domain
+
+        membership regardless of agent installation status.'
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - $ref: '#/components/parameters/Search'
+      - $ref: '#/components/parameters/SortColumn'
+      - $ref: '#/components/parameters/SortDir'
+      - name: domain
+        in: query
+        description: Filter by domain name
+        schema:
+          type: string
+      - name: operating_system
+        in: query
+        description: Partial match against OS string
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Paginated device inventory
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/DeviceData'
+              example:
+                total_count: 350
+                page: 1
+                per_page: 25
+                data:
+                - id: dev_9a1b2c
+                  hostname: SERVER-DB-01
+                  ip_address: 10.0.0.10
+                  mac_address: 00:11:22:33:44:55
+                  operating_system: Windows Server 2022
+                  domain: corp.example.com
+                  last_seen: '2026-05-25T22:00:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getDeviceData
+      x-operation-id-source: derived
+components:
+  parameters:
+    Search:
+      name: search
+      in: query
+      description: Free-text search term applied across key fields
+      schema:
+        type: string
+    SortColumn:
+      name: sort_column
+      in: query
+      description: Field name to sort by
+      schema:
+        type: string
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of records per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
+    SortDir:
+      name: sort_dir
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
+  schemas:
+    CompleteEndpointData:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        at_risk_objects:
+          type: object
+          properties:
+            at_risk_systems_count:
+              type: integer
+            at_risk_shares_count:
+              type: integer
+            at_risk_groups_count:
+              type: integer
+        stale_sensors_data:
+          type: object
+          properties:
+            host_count:
+              type: integer
+              description: Total number of managed hosts
+            stale_sensors_count:
+              type: integer
+              description: Agents that have not checked in recently
+        compliance_insights_data:
+          $ref: '#/components/schemas/ComplianceInsights'
+        network_health_data:
+          type: object
+          properties:
+            network_health_score:
+              type: integer
+              minimum: 0
+              maximum: 100
+            stats:
+              type: array
+              items:
+                $ref: '#/components/schemas/NetworkHealthStat'
+        service_enablement_data:
+          type: object
+          additionalProperties:
+            type: boolean
+          description: Map of service names to enabled/disabled status
+    NetworkHealthStat:
+      type: object
+      properties:
+        network_health_field:
+          type: string
+          description: Name of the metric
+          example: Unacknowledged Detections
+        network_health_value:
+          type: integer
+          description: Current count for this metric
+    DeviceData:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        ip_address:
+          type: string
+          format: ipv4
+        mac_address:
+          type: string
+        operating_system:
+          type: string
+        domain:
+          type: string
+        last_seen:
+          type: string
+          format: date-time
+    EndpointData:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        ip_address:
+          type: string
+          format: ipv4
+        agent_type:
+          type: string
+          enum:
+          - sentinel_one
+          - carbon_black
+          - crowdstrike
+          - defender
+        agent_version:
+          type: string
+        policy_name:
+          type: string
+        online:
+          type: boolean
+          description: Whether the agent is currently connected
+        last_seen:
+          type: string
+          format: date-time
+        os:
+          type: string
+    ComplianceInsights:
+      type: object
+      properties:
+        stale_accounts_count:
+          type: integer
+          description: AD accounts inactive for 90+ days
+        password_never_expire_count:
+          type: integer
+          description: Accounts with password expiry disabled
+        password_reversible_encryption_count:
+          type: integer
+          description: Accounts storing passwords with reversible encryption enabled
+        stale_passwords_count:
+          type: integer
+          description: Accounts whose passwords have not changed in 90+ days
+        gpo_violations_count:
+          type: integer
+          description: Active Group Policy Object violations
+        network_health_stats:
+          type: array
+          description: Additional granular compliance metrics
+          items:
+            $ref: '#/components/schemas/NetworkHealthStat'
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    PaginatedResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of records matching the query
+        page:
+          type: integer
+        per_page:
+          type: integer
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by the Adlumin authentication service. Pass in the Authorization header as `Bearer <token>`.

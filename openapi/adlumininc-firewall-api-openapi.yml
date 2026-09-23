@@ -1,0 +1,297 @@
+openapi: 3.2.0
+info:
+  title: Adlumin XDR/MDR Firewall API
+  description: 'The Adlumin API provides programmatic access to your organization''s security data,
+
+    including detections, at-risk assets, endpoint telemetry, network health, firewall
+
+    events, and compliance insights.'
+  version: 1.0.0
+  contact:
+    name: Adlumin Support
+    url: https://www.adlumin.com
+servers:
+- url: https://api.adlumin.com/v1
+  description: Production
+security:
+- BearerAuth: []
+tags:
+- name: Firewall
+  description: Firewall event logs
+paths:
+  /firewall:
+    get:
+      tags:
+      - Firewall
+      summary: List firewall events
+      description: 'Returns firewall log events from the tenant''s network security devices.
+
+        Events are sourced from the tenant''s Elasticsearch index and include
+
+        source/destination IPs, geographic data, action taken, and a UBA risk score.
+
+
+        Use `action` to filter to blocked/dropped traffic only. Use `since`/`until`
+
+        to scope to a time window. Geographic aggregations (top source/destination
+
+        countries) are available as a separate query using `aggregate=geo`.'
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - $ref: '#/components/parameters/Since'
+      - $ref: '#/components/parameters/Until'
+      - $ref: '#/components/parameters/Search'
+      - $ref: '#/components/parameters/SortColumn'
+      - $ref: '#/components/parameters/SortDir'
+      - name: action
+        in: query
+        description: Filter by firewall action
+        schema:
+          type: string
+          enum:
+          - block
+          - deny
+          - drop
+          - allow
+      - name: source_country
+        in: query
+        description: Filter by source country code (ISO 3166-1 alpha-2)
+        schema:
+          type: string
+          example: CN
+      - name: destination_country
+        in: query
+        description: Filter by destination country code (ISO 3166-1 alpha-2)
+        schema:
+          type: string
+      - name: aggregate
+        in: query
+        description: 'Return aggregations instead of raw events.
+
+          - `geo`: top source/destination countries
+
+          - `blocked_ips`: top 15 blocked source IPs by month
+
+          '
+        schema:
+          type: string
+          enum:
+          - geo
+          - blocked_ips
+      responses:
+        '200':
+          description: Firewall events or aggregation results
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/FirewallEvent'
+                - $ref: '#/components/schemas/FirewallAggregation'
+              examples:
+                raw_events:
+                  summary: Raw firewall events
+                  value:
+                    total_count: 10482
+                    page: 1
+                    per_page: 25
+                    data:
+                    - id: fw_3d9e1f
+                      source_address: 185.220.101.5
+                      destination_address: 10.0.0.1
+                      source_country_code: RU
+                      destination_country_code: US
+                      action: block
+                      timewritten: '2026-05-25T23:44:11Z'
+                      ubascore: 87
+                      firewall_data: Blocked inbound SSH from known Tor exit node
+                geo_aggregation:
+                  summary: Geographic aggregation
+                  value:
+                    aggregation_type: geo
+                    top_source_countries:
+                    - country_code: CN
+                      event_count: 3420
+                    - country_code: RU
+                      event_count: 1897
+                    top_destination_countries:
+                    - country_code: US
+                      event_count: 8901
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getFirewall
+      x-operation-id-source: derived
+components:
+  parameters:
+    Search:
+      name: search
+      in: query
+      description: Free-text search term applied across key fields
+      schema:
+        type: string
+    SortColumn:
+      name: sort_column
+      in: query
+      description: Field name to sort by
+      schema:
+        type: string
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of records per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
+    SortDir:
+      name: sort_dir
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
+  schemas:
+    FirewallAggregation:
+      type: object
+      properties:
+        aggregation_type:
+          type: string
+          enum:
+          - geo
+          - blocked_ips
+        top_source_countries:
+          type: array
+          items:
+            type: object
+            properties:
+              country_code:
+                type: string
+              event_count:
+                type: integer
+        top_destination_countries:
+          type: array
+          items:
+            type: object
+            properties:
+              country_code:
+                type: string
+              event_count:
+                type: integer
+        top_blocked_ips:
+          type: array
+          items:
+            type: object
+            properties:
+              source_address:
+                type: string
+                format: ipv4
+              block_count:
+                type: integer
+              month:
+                type: string
+                example: 2026-05
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    PaginatedResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of records matching the query
+        page:
+          type: integer
+        per_page:
+          type: integer
+    FirewallEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        source_address:
+          type: string
+          format: ipv4
+        destination_address:
+          type: string
+          format: ipv4
+        source_country_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code for source IP
+          example: RU
+        destination_country_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code for destination IP
+          example: US
+        action:
+          type: string
+          enum:
+          - block
+          - deny
+          - drop
+          - allow
+        timewritten:
+          type: string
+          format: date-time
+        ubascore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: User Behavior Analytics risk score for this event
+        firewall_data:
+          type: string
+          description: Raw event payload or human-readable summary
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by the Adlumin authentication service. Pass in the Authorization header as `Bearer <token>`.

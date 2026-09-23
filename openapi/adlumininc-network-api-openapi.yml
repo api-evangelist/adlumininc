@@ -1,0 +1,147 @@
+openapi: 3.2.0
+info:
+  title: Adlumin XDR/MDR Network API
+  description: 'The Adlumin API provides programmatic access to your organization''s security data,
+
+    including detections, at-risk assets, endpoint telemetry, network health, firewall
+
+    events, and compliance insights.'
+  version: 1.0.0
+  contact:
+    name: Adlumin Support
+    url: https://www.adlumin.com
+servers:
+- url: https://api.adlumin.com/v1
+  description: Production
+security:
+- BearerAuth: []
+tags:
+- name: Network
+  description: Network health and traffic data
+paths:
+  /network_data:
+    get:
+      tags:
+      - Network
+      summary: Get network health statistics
+      description: 'Returns the full set of network health metrics for the tenant. Each metric
+
+        represents a risk indicator (e.g., stale accounts, locked-out accounts,
+
+        GPO violations) with a current count and a contribution to the overall
+
+        network health score (0–100, higher is healthier).
+
+
+        Metric categories include:
+
+        - Active Directory hygiene (stale accounts, expired passwords, reversible encryption)
+
+        - Detection posture (unacknowledged high/critical detections)
+
+        - Privilege management (delegated/privileged domain accounts)
+
+        - IT operations (service account failures, circular groups)'
+      parameters:
+      - $ref: '#/components/parameters/Since'
+      - $ref: '#/components/parameters/Until'
+      responses:
+        '200':
+          description: Network health metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkData'
+              example:
+                network_health_score: 74
+                last_calculated: '2026-05-26T06:00:00Z'
+                stats:
+                - network_health_field: Unacknowledged Detections
+                  network_health_value: 3
+                - network_health_field: Local Administrator Elevated
+                  network_health_value: 7
+                - network_health_field: Locked Out Accounts
+                  network_health_value: 2
+                - network_health_field: Service Account Failures (IT Ops)
+                  network_health_value: 1
+                - network_health_field: Expired Passwords
+                  network_health_value: 4
+                - network_health_field: Delegated Privileged Accounts
+                  network_health_value: 18
+                - network_health_field: Reversible Encryption Usage
+                  network_health_value: 1
+                - network_health_field: Clear Text Password Usage
+                  network_health_value: 0
+                - network_health_field: GPO Violations
+                  network_health_value: 4
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getNetworkData
+      x-operation-id-source: derived
+components:
+  parameters:
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
+  schemas:
+    NetworkHealthStat:
+      type: object
+      properties:
+        network_health_field:
+          type: string
+          description: Name of the metric
+          example: Unacknowledged Detections
+        network_health_value:
+          type: integer
+          description: Current count for this metric
+    NetworkData:
+      type: object
+      properties:
+        network_health_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Composite health score; higher is healthier
+        last_calculated:
+          type: string
+          format: date-time
+        stats:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetworkHealthStat'
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by the Adlumin authentication service. Pass in the Authorization header as `Bearer <token>`.

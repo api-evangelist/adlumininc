@@ -1,0 +1,156 @@
+openapi: 3.2.0
+info:
+  title: Adlumin XDR/MDR Compliance API
+  description: 'The Adlumin API provides programmatic access to your organization''s security data,
+
+    including detections, at-risk assets, endpoint telemetry, network health, firewall
+
+    events, and compliance insights.'
+  version: 1.0.0
+  contact:
+    name: Adlumin Support
+    url: https://www.adlumin.com
+servers:
+- url: https://api.adlumin.com/v1
+  description: Production
+security:
+- BearerAuth: []
+tags:
+- name: Compliance
+  description: Compliance and policy insights
+paths:
+  /compliance_insights:
+    get:
+      tags:
+      - Compliance
+      summary: Get compliance insights
+      description: 'Returns compliance and policy violation metrics for the tenant, covering
+
+        Active Directory hygiene, Group Policy violations, and detection posture.
+
+        These metrics feed the Compliance Insights section of the Adlumin dashboard
+
+        and can be used to track improvement over time.
+
+
+        Metric definitions:
+
+        | Field | Description |
+
+        |---|---|
+
+        | `stale_accounts_count` | AD accounts inactive for 90+ days |
+
+        | `password_never_expire_count` | Accounts with password expiry disabled |
+
+        | `password_reversible_encryption_count` | Accounts storing passwords with reversible encryption |
+
+        | `stale_passwords_count` | Passwords not changed in 90+ days |
+
+        | `gpo_violations_count` | Group Policy Object rule violations |'
+      parameters:
+      - $ref: '#/components/parameters/Since'
+      - $ref: '#/components/parameters/Until'
+      responses:
+        '200':
+          description: Compliance insight metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceInsights'
+              example:
+                stale_accounts_count: 5
+                password_never_expire_count: 22
+                password_reversible_encryption_count: 1
+                stale_passwords_count: 9
+                gpo_violations_count: 4
+                network_health_stats:
+                - network_health_field: IT Operations Failures
+                  network_health_value: 3
+                - network_health_field: Privileged Domain Accounts
+                  network_health_value: 18
+                - network_health_field: Circular Groups
+                  network_health_value: 2
+                - network_health_field: High Detections
+                  network_health_value: 5
+                - network_health_field: Critical Detections
+                  network_health_value: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getComplianceInsights
+      x-operation-id-source: derived
+components:
+  parameters:
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
+  schemas:
+    NetworkHealthStat:
+      type: object
+      properties:
+        network_health_field:
+          type: string
+          description: Name of the metric
+          example: Unacknowledged Detections
+        network_health_value:
+          type: integer
+          description: Current count for this metric
+    ComplianceInsights:
+      type: object
+      properties:
+        stale_accounts_count:
+          type: integer
+          description: AD accounts inactive for 90+ days
+        password_never_expire_count:
+          type: integer
+          description: Accounts with password expiry disabled
+        password_reversible_encryption_count:
+          type: integer
+          description: Accounts storing passwords with reversible encryption enabled
+        stale_passwords_count:
+          type: integer
+          description: Accounts whose passwords have not changed in 90+ days
+        gpo_violations_count:
+          type: integer
+          description: Active Group Policy Object violations
+        network_health_stats:
+          type: array
+          description: Additional granular compliance metrics
+          items:
+            $ref: '#/components/schemas/NetworkHealthStat'
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by the Adlumin authentication service. Pass in the Authorization header as `Bearer <token>`.
