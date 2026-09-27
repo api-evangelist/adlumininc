@@ -79,6 +79,39 @@ paths:
       operationId: getNetworkData
       x-operation-id-source: derived
 components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    NetworkData:
+      type: object
+      properties:
+        network_health_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Composite health score; higher is healthier
+        last_calculated:
+          type: string
+          format: date-time
+        stats:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetworkHealthStat'
+    NetworkHealthStat:
+      type: object
+      properties:
+        network_health_field:
+          type: string
+          description: Name of the metric
+          example: Unacknowledged Detections
+        network_health_value:
+          type: integer
+          description: Current count for this metric
   parameters:
     Until:
       name: until
@@ -96,39 +129,6 @@ components:
         type: string
         format: date-time
         example: '2026-05-01T00:00:00Z'
-  schemas:
-    NetworkHealthStat:
-      type: object
-      properties:
-        network_health_field:
-          type: string
-          description: Name of the metric
-          example: Unacknowledged Detections
-        network_health_value:
-          type: integer
-          description: Current count for this metric
-    NetworkData:
-      type: object
-      properties:
-        network_health_score:
-          type: integer
-          minimum: 0
-          maximum: 100
-          description: Composite health score; higher is healthier
-        last_calculated:
-          type: string
-          format: date-time
-        stats:
-          type: array
-          items:
-            $ref: '#/components/schemas/NetworkHealthStat'
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
   responses:
     Unauthorized:
       description: Missing or invalid Bearer token

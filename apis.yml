@@ -33,6 +33,19 @@ tags:
 - Compliance
 - Managed Service Providers
 - MCP
+- Agent-Native
+tags_raw:
+- Security
+- Cybersecurity
+- Managed Detection and Response
+- Extended Detection and Response
+- SIEM
+- SOAR
+- Threat Detection
+- Endpoint Security
+- Compliance
+- Managed Service Providers
+- MCP
 - agent-native
 apis:
 - name: Adlumin MCP Server
@@ -47,6 +60,10 @@ apis:
   humanURL: https://developer.n-able.com/adlumin/page/the-mcp-server-start-guide
   baseURL: https://api.adlumin.com/v1
   tags:
+  - MCP
+  - Agent-Native
+  - Security
+  tags_raw:
   - MCP
   - agent-native
   - Security

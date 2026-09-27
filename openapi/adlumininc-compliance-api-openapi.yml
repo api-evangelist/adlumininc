@@ -80,34 +80,14 @@ paths:
       operationId: getComplianceInsights
       x-operation-id-source: derived
 components:
-  parameters:
-    Until:
-      name: until
-      in: query
-      description: Return records on or before this timestamp (ISO 8601)
-      schema:
-        type: string
-        format: date-time
-        example: '2026-05-31T23:59:59Z'
-    Since:
-      name: since
-      in: query
-      description: Return records on or after this timestamp (ISO 8601)
-      schema:
-        type: string
-        format: date-time
-        example: '2026-05-01T00:00:00Z'
   schemas:
-    NetworkHealthStat:
+    Error:
       type: object
       properties:
-        network_health_field:
+        error:
           type: string
-          description: Name of the metric
-          example: Unacknowledged Detections
-        network_health_value:
-          type: integer
-          description: Current count for this metric
+        message:
+          type: string
     ComplianceInsights:
       type: object
       properties:
@@ -131,13 +111,33 @@ components:
           description: Additional granular compliance metrics
           items:
             $ref: '#/components/schemas/NetworkHealthStat'
-    Error:
+    NetworkHealthStat:
       type: object
       properties:
-        error:
+        network_health_field:
           type: string
-        message:
-          type: string
+          description: Name of the metric
+          example: Unacknowledged Detections
+        network_health_value:
+          type: integer
+          description: Current count for this metric
+  parameters:
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
   responses:
     Unauthorized:
       description: Missing or invalid Bearer token

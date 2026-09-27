@@ -179,91 +179,24 @@ paths:
       operationId: postAcknowledgeDetections
       x-operation-id-source: derived
 components:
-  parameters:
-    Search:
-      name: search
-      in: query
-      description: Free-text search term applied across key fields
-      schema:
-        type: string
-    SortColumn:
-      name: sort_column
-      in: query
-      description: Field name to sort by
-      schema:
-        type: string
-    PerPage:
-      name: per_page
-      in: query
-      description: Number of records per page (max 100)
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 25
-    Until:
-      name: until
-      in: query
-      description: Return records on or before this timestamp (ISO 8601)
-      schema:
-        type: string
-        format: date-time
-        example: '2026-05-31T23:59:59Z'
-    SortDir:
-      name: sort_dir
-      in: query
-      description: Sort direction
-      schema:
-        type: string
-        enum:
-        - asc
-        - desc
-        default: desc
-    Page:
-      name: page
-      in: query
-      description: Page number (1-indexed)
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-    Since:
-      name: since
-      in: query
-      description: Return records on or after this timestamp (ISO 8601)
-      schema:
-        type: string
-        format: date-time
-        example: '2026-05-01T00:00:00Z'
-  responses:
-    BadRequest:
-      description: Request body or parameters are malformed
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: bad_request
-            message: detection_ids must be a non-empty array
-    Unauthorized:
-      description: Missing or invalid Bearer token
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: unauthorized
-            message: Bearer token is missing or has expired
-    UnprocessableEntity:
-      description: Request is valid but cannot be processed due to business logic constraints
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: unprocessable_entity
-            message: 'Invalid date range: ''since'' must be before ''until'''
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+    PaginatedResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of records matching the query
+        page:
+          type: integer
+        per_page:
+          type: integer
     Detection:
       type: object
       properties:
@@ -335,23 +268,90 @@ components:
         created_at:
           type: string
           format: date-time
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
-    PaginatedResponse:
-      type: object
-      properties:
-        total_count:
-          type: integer
-          description: Total number of records matching the query
-        page:
-          type: integer
-        per_page:
-          type: integer
+  parameters:
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
+    SortDir:
+      name: sort_dir
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+    SortColumn:
+      name: sort_column
+      in: query
+      description: Field name to sort by
+      schema:
+        type: string
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of records per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Search:
+      name: search
+      in: query
+      description: Free-text search term applied across key fields
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
+    BadRequest:
+      description: Request body or parameters are malformed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: bad_request
+            message: detection_ids must be a non-empty array
+    UnprocessableEntity:
+      description: Request is valid but cannot be processed due to business logic constraints
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unprocessable_entity
+            message: 'Invalid date range: ''since'' must be before ''until'''
   securitySchemes:
     BearerAuth:
       type: http
