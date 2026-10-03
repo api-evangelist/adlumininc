@@ -80,13 +80,16 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
-    Error:
+    NetworkHealthStat:
       type: object
       properties:
-        error:
+        network_health_field:
           type: string
-        message:
-          type: string
+          description: Name of the metric
+          example: Unacknowledged Detections
+        network_health_value:
+          type: integer
+          description: Current count for this metric
     NetworkData:
       type: object
       properties:
@@ -102,33 +105,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NetworkHealthStat'
-    NetworkHealthStat:
+    Error:
       type: object
       properties:
-        network_health_field:
+        error:
           type: string
-          description: Name of the metric
-          example: Unacknowledged Detections
-        network_health_value:
-          type: integer
-          description: Current count for this metric
-  parameters:
-    Until:
-      name: until
-      in: query
-      description: Return records on or before this timestamp (ISO 8601)
-      schema:
-        type: string
-        format: date-time
-        example: '2026-05-31T23:59:59Z'
-    Since:
-      name: since
-      in: query
-      description: Return records on or after this timestamp (ISO 8601)
-      schema:
-        type: string
-        format: date-time
-        example: '2026-05-01T00:00:00Z'
+        message:
+          type: string
   responses:
     Unauthorized:
       description: Missing or invalid Bearer token
@@ -139,6 +122,23 @@ components:
           example:
             error: unauthorized
             message: Bearer token is missing or has expired
+  parameters:
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
   securitySchemes:
     BearerAuth:
       type: http
