@@ -1,0 +1,35 @@
+slug: adlumininc
+provider: Adlumin
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 2
+edges:
+- tag: Detections
+  spec_file: adlumininc-detections-api-openapi.yml
+  capability_id: BC-620.30
+  capability_id_l1: BC-620
+  capability_name: Threat Detection & Response Management
+  confidence: 0.92
+  evidence: GET /detections getDetections 'List detections'; POST /acknowledge_detections 'Acknowledge
+    detections'; schema 'Detection' on a 'cloud-native security operations platform ... XDR, 24/7 expert-led
+    MDR, SIEM log management'
+  reason: Operations list and acknowledge security detections from an XDR/MDR/SIEM platform — this is
+    SOC threat detection and response, not business alerting.
+- tag: Firewall
+  spec_file: adlumininc-firewall-api-openapi.yml
+  capability_id: BC-620.30
+  capability_id_l1: BC-620
+  capability_name: Threat Detection & Response Management
+  confidence: 0.8
+  evidence: GET /firewall getFirewall 'List firewall events'; schemas 'FirewallEvent', 'FirewallAggregation'
+  reason: Firewall security event retrieval from a SIEM/XDR platform is SOC/SIEM telemetry for threat
+    detection and response.

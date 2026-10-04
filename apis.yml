@@ -210,6 +210,9 @@ apis:
   - type: DataModel
     url: data-model/adlumininc-data-model.yml
 common:
+- type: CapabilityMap
+  url: capabilities/adlumininc-capability-edges.yml
+  name: Adlumin Business Capability Map
 - type: AgenticAccess
   url: agentic-access/adlumininc-agentic-access.yml
 - type: Website
