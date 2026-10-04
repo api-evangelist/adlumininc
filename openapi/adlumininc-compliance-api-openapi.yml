@@ -80,7 +80,24 @@ paths:
       operationId: getComplianceInsights
       x-operation-id-source: derived
 components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
     NetworkHealthStat:
       type: object
       properties:
@@ -91,13 +108,6 @@ components:
         network_health_value:
           type: integer
           description: Current count for this metric
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
     ComplianceInsights:
       type: object
       properties:
@@ -121,16 +131,6 @@ components:
           description: Additional granular compliance metrics
           items:
             $ref: '#/components/schemas/NetworkHealthStat'
-  responses:
-    Unauthorized:
-      description: Missing or invalid Bearer token
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: unauthorized
-            message: Bearer token is missing or has expired
   parameters:
     Since:
       name: since

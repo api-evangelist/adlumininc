@@ -79,7 +79,24 @@ paths:
       operationId: getNetworkData
       x-operation-id-source: derived
 components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
     NetworkHealthStat:
       type: object
       properties:
@@ -105,23 +122,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NetworkHealthStat'
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
-  responses:
-    Unauthorized:
-      description: Missing or invalid Bearer token
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: unauthorized
-            message: Bearer token is missing or has expired
   parameters:
     Since:
       name: since

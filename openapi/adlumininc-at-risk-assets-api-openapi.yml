@@ -215,41 +215,57 @@ paths:
       operationId: getAtRiskSystems
       x-operation-id-source: derived
 components:
+  parameters:
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of records per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    SortColumn:
+      name: sort_column
+      in: query
+      description: Field name to sort by
+      schema:
+        type: string
+    SortDir:
+      name: sort_dir
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+    Search:
+      name: search
+      in: query
+      description: Free-text search term applied across key fields
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
   schemas:
-    PaginatedResponse:
-      type: object
-      properties:
-        total_count:
-          type: integer
-          description: Total number of records matching the query
-        page:
-          type: integer
-        per_page:
-          type: integer
-    AtRiskSystem:
-      type: object
-      properties:
-        id:
-          type: string
-        hostname:
-          type: string
-        ip_address:
-          type: string
-          format: ipv4
-        operating_system:
-          type: string
-        domain:
-          type: string
-        mac_address:
-          type: string
-        at_risk:
-          type: boolean
-        exclusion:
-          type: boolean
-        note:
-          type:
-          - string
-          - 'null'
     Error:
       type: object
       properties:
@@ -290,6 +306,40 @@ components:
         is_domain_group:
           type: boolean
           description: True for domain groups; false for local groups
+    PaginatedResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of records matching the query
+        page:
+          type: integer
+        per_page:
+          type: integer
+    AtRiskSystem:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        ip_address:
+          type: string
+          format: ipv4
+        operating_system:
+          type: string
+        domain:
+          type: string
+        mac_address:
+          type: string
+        at_risk:
+          type: boolean
+        exclusion:
+          type: boolean
+        note:
+          type:
+          - string
+          - 'null'
     AtRiskShare:
       type: object
       properties:
@@ -312,56 +362,6 @@ components:
           type:
           - string
           - 'null'
-  parameters:
-    SortColumn:
-      name: sort_column
-      in: query
-      description: Field name to sort by
-      schema:
-        type: string
-    SortDir:
-      name: sort_dir
-      in: query
-      description: Sort direction
-      schema:
-        type: string
-        enum:
-        - asc
-        - desc
-        default: desc
-    Search:
-      name: search
-      in: query
-      description: Free-text search term applied across key fields
-      schema:
-        type: string
-    Page:
-      name: page
-      in: query
-      description: Page number (1-indexed)
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-    PerPage:
-      name: per_page
-      in: query
-      description: Number of records per page (max 100)
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 25
-  responses:
-    Unauthorized:
-      description: Missing or invalid Bearer token
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: unauthorized
-            message: Bearer token is missing or has expired
   securitySchemes:
     BearerAuth:
       type: http
