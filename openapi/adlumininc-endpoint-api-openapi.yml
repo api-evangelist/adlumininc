@@ -196,72 +196,6 @@ paths:
       operationId: getDeviceData
       x-operation-id-source: derived
 components:
-  parameters:
-    PerPage:
-      name: per_page
-      in: query
-      description: Number of records per page (max 100)
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 25
-    Since:
-      name: since
-      in: query
-      description: Return records on or after this timestamp (ISO 8601)
-      schema:
-        type: string
-        format: date-time
-        example: '2026-05-01T00:00:00Z'
-    Until:
-      name: until
-      in: query
-      description: Return records on or before this timestamp (ISO 8601)
-      schema:
-        type: string
-        format: date-time
-        example: '2026-05-31T23:59:59Z'
-    SortDir:
-      name: sort_dir
-      in: query
-      description: Sort direction
-      schema:
-        type: string
-        enum:
-        - asc
-        - desc
-        default: desc
-    SortColumn:
-      name: sort_column
-      in: query
-      description: Field name to sort by
-      schema:
-        type: string
-    Search:
-      name: search
-      in: query
-      description: Free-text search term applied across key fields
-      schema:
-        type: string
-    Page:
-      name: page
-      in: query
-      description: Page number (1-indexed)
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-  responses:
-    Unauthorized:
-      description: Missing or invalid Bearer token
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: unauthorized
-            message: Bearer token is missing or has expired
   schemas:
     DeviceData:
       type: object
@@ -282,13 +216,29 @@ components:
         last_seen:
           type: string
           format: date-time
-    Error:
+    ComplianceInsights:
       type: object
       properties:
-        error:
-          type: string
-        message:
-          type: string
+        stale_accounts_count:
+          type: integer
+          description: AD accounts inactive for 90+ days
+        password_never_expire_count:
+          type: integer
+          description: Accounts with password expiry disabled
+        password_reversible_encryption_count:
+          type: integer
+          description: Accounts storing passwords with reversible encryption enabled
+        stale_passwords_count:
+          type: integer
+          description: Accounts whose passwords have not changed in 90+ days
+        gpo_violations_count:
+          type: integer
+          description: Active Group Policy Object violations
+        network_health_stats:
+          type: array
+          description: Additional granular compliance metrics
+          items:
+            $ref: '#/components/schemas/NetworkHealthStat'
     NetworkHealthStat:
       type: object
       properties:
@@ -299,34 +249,12 @@ components:
         network_health_value:
           type: integer
           description: Current count for this metric
-    EndpointData:
+    Error:
       type: object
       properties:
-        id:
+        error:
           type: string
-        hostname:
-          type: string
-        ip_address:
-          type: string
-          format: ipv4
-        agent_type:
-          type: string
-          enum:
-          - sentinel_one
-          - carbon_black
-          - crowdstrike
-          - defender
-        agent_version:
-          type: string
-        policy_name:
-          type: string
-        online:
-          type: boolean
-          description: Whether the agent is currently connected
-        last_seen:
-          type: string
-          format: date-time
-        os:
+        message:
           type: string
     PaginatedResponse:
       type: object
@@ -382,29 +310,101 @@ components:
           additionalProperties:
             type: boolean
           description: Map of service names to enabled/disabled status
-    ComplianceInsights:
+    EndpointData:
       type: object
       properties:
-        stale_accounts_count:
-          type: integer
-          description: AD accounts inactive for 90+ days
-        password_never_expire_count:
-          type: integer
-          description: Accounts with password expiry disabled
-        password_reversible_encryption_count:
-          type: integer
-          description: Accounts storing passwords with reversible encryption enabled
-        stale_passwords_count:
-          type: integer
-          description: Accounts whose passwords have not changed in 90+ days
-        gpo_violations_count:
-          type: integer
-          description: Active Group Policy Object violations
-        network_health_stats:
-          type: array
-          description: Additional granular compliance metrics
-          items:
-            $ref: '#/components/schemas/NetworkHealthStat'
+        id:
+          type: string
+        hostname:
+          type: string
+        ip_address:
+          type: string
+          format: ipv4
+        agent_type:
+          type: string
+          enum:
+          - sentinel_one
+          - carbon_black
+          - crowdstrike
+          - defender
+        agent_version:
+          type: string
+        policy_name:
+          type: string
+        online:
+          type: boolean
+          description: Whether the agent is currently connected
+        last_seen:
+          type: string
+          format: date-time
+        os:
+          type: string
+  parameters:
+    SortColumn:
+      name: sort_column
+      in: query
+      description: Field name to sort by
+      schema:
+        type: string
+    Since:
+      name: since
+      in: query
+      description: Return records on or after this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-01T00:00:00Z'
+    SortDir:
+      name: sort_dir
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+    Search:
+      name: search
+      in: query
+      description: Free-text search term applied across key fields
+      schema:
+        type: string
+    Until:
+      name: until
+      in: query
+      description: Return records on or before this timestamp (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-31T23:59:59Z'
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of records per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Bearer token is missing or has expired
   securitySchemes:
     BearerAuth:
       type: http
