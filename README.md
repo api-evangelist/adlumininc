@@ -64,16 +64,134 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Adlumin is an N-able company providing a cloud-native security operations platform for mid-market
-organizations, financial institutions, government agencies and managed service providers, combining
-XDR, 24/7 expert-led MDR, SIEM, in-platform SOAR, UEBA, darknet monitoring, ITDR, vulnerability
-management and compliance reporting under one license.
+Adlumin is an N-able company providing a cloud-native security operations platform for mid-market organizations, financial institutions, government agencies and managed service providers. One license combines XDR, 24/7 expert-led MDR, SIEM log management, in-platform SOAR response actions, UEBA, darknet exposure monitoring, honeypots, identity threat detection and response, vulnerability management and audit-ready compliance reporting. Adlumin publishes a public developer portal on N-able's developer site carrying an OpenAPI 3.0.3 description of the Adlumin XDR/MDR v1 REST API (detections, at-risk assets, endpoint and device telemetry, network health, firewall events and compliance insights) plus a downloadable Python MCP server that exposes those same endpoints to AI assistants as thirteen agent tools.
 
-Adlumin publishes an OpenAPI 3.0.3 description of its XDR/MDR v1 REST API (11 operations across
-detections, at-risk assets, endpoint and device telemetry, network health, firewall events and
-compliance insights) and a first-party Python MCP server exposing those endpoints as 13 agent tools.
+**Areas:** Security · Cybersecurity · Managed Detection and Response · Extended Detection and Response · SIEM · SOAR · Threat Detection · Endpoint Security · Compliance · Managed Service Providers · MCP · Agent-Native
 
-- Product: https://www.n-able.com/products/adlumin
-- Developer portal: https://developer.n-able.com/adlumin
-- API reference: https://developer.n-able.com/adlumin/reference
-- MCP server: https://developer.n-able.com/adlumin/page/the-mcp-server-start-guide
+## Adlumin on APIs.io
+
+Everything profiled for Adlumin is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/adlumininc/](https://apis.io/providers/adlumininc/)** — or go straight to one of the APIs or properties below.
+
+### APIs (7)
+
+- [Adlumin MCP Server](https://apis.io/apis/adlumininc/adlumin-mcp-server/) — First-party Model Context Protocol server distributed by N-able as a downloadable Python package. Wraps the eleven Adlumin v1 REST endpoints as thirteen MCP…
+- [Adlumin At-Risk Assets API](https://apis.io/apis/adlumininc/adlumininc-at-risk-assets-api/) — Hosts, groups, and shares flagged as at-risk
+- [Adlumin Compliance API](https://apis.io/apis/adlumininc/adlumininc-compliance-api/) — Compliance and policy insights
+- [Adlumin Detections API](https://apis.io/apis/adlumininc/adlumininc-detections-api/) — Security detection events and acknowledgement
+- [Adlumin Endpoint API](https://apis.io/apis/adlumininc/adlumininc-endpoint-api/) — Endpoint agent and device telemetry
+- [Adlumin Firewall API](https://apis.io/apis/adlumininc/adlumininc-firewall-api/) — Firewall event logs
+- [Adlumin Network API](https://apis.io/apis/adlumininc/adlumininc-network-api/) — Network health and traffic data
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [adlumin-api](https://apis.io/servers/adlumininc/adlumin-api/)
+
+#### Agentic access (1)
+
+Which operations an agent can call, which act, and which need a human in the loop.
+
+- [Adlumininc Agentic Access](https://apis.io/agentic-access/adlumininc/adlumininc-agentic-access/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Adlumininc Api Overlay](https://apis.io/overlays/adlumininc/adlumininc-api-overlay/)
+
+#### Security (3)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Adlumininc Authentication](https://apis.io/security/adlumininc/adlumininc-authentication/)
+- [Adlumininc Domain Security](https://apis.io/security/adlumininc/adlumininc-domain-security/)
+- [Adlumininc Vulnerability Disclosure](https://apis.io/security/adlumininc/adlumininc-vulnerability-disclosure/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Adlumininc Plans Pricing](https://apis.io/plans/adlumininc/adlumininc-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Adlumininc Rate Limits](https://apis.io/rate-limits/adlumininc/adlumininc-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://www.n-able.com/products/adlumin)
+- [Documentation](https://developer.n-able.com/adlumin/docs/getting-started)
+- [Getting started](https://developer.n-able.com/adlumin/docs/getting-started)
+- [API reference](https://developer.n-able.com/adlumin/reference)
+- [Support](https://www.n-able.com/contact)
+- [Changelog](https://status.n-able.com/release-notes/)
+- [Blog](https://www.n-able.com/blog)
+- [Security](https://www.n-able.com/security-and-privacy/vulnerability-disclosure-policy)
+- [Compliance](https://trustcenter.n-able.com/)
+- [Trust centre](https://trustcenter.n-able.com/)
+- [Terms of service](https://www.n-able.com/legal/terms-of-use)
+- [Privacy policy](https://www.n-able.com/legal/privacy)
+- [GitHub](https://github.com/Adlumin)
+- [Status](https://uptime.n-able.com/)
+
+## API Evangelist rating
+
+**Kin Score 43.7** — developing · rubric 0.24.0 · scored 2026-10-17
+
+| Facet | Score |
+|---|---|
+| Discoverability | 71.7 |
+| Contract quality | 53.3 |
+| Contract governance | 18.2 |
+| Operational transparency | 44.7 |
+| Developer ergonomics | 20.8 |
+| Access clarity | 43.4 |
+
+**Agent readiness 33.6** — agent-ready
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | derived (partial credit) |
+| Reversibility Documented | — |
+| MCP Server | documented (partial credit) |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | derived (partial credit) |
+| Error Semantics | derived (partial credit) |
+| OpenAPI Examples | verified |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | yes |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+
+**Regulatory alignment 35.3** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/adlumininc/](https://apis.io/providers/adlumininc/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Adlumin: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/adlumininc/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
